@@ -1,4 +1,5 @@
-import { COORDINATE, MapUtils, TILE_HEIGHT, TILE_WIDTH } from './mapUtils';
+import { Coordinate, MapUtils, TILE_HEIGHT, TILE_WIDTH } from './mapUtils';
+import { RotationDirection } from './KeyboardControls';
 
 const TOTAL_BUBBLE_COLORS = 6;
 export const BubbleColorEnum = {
@@ -10,63 +11,15 @@ export const BubbleColorEnum = {
   ORANGE: { value: 5, imageName: 'tile-bubble-orange' },
 };
 
-
-export class BubblePair {
-  private _bubble1Coordinate: COORDINATE;
-  private _bubble1Color: number;
-  private _bubble2Color: number;
-  private _orientation: BUBBLE_ORIENTATION;
-
-  constructor(bubble1Color: number, bubble2Color: number) {
-    this._bubble1Color = bubble1Color;
-    this._bubble2Color = bubble2Color;
-    this._orientation = BUBBLE_ORIENTATION.VERTICAL_1_TOP;
-  }
-
-  getBubble1Color(): number {
-    return this._bubble1Color;
-  }
-
-  getBubble2Color(): number {
-    return this._bubble2Color;
-  }
-
-  getOrientation(): BUBBLE_ORIENTATION {
-    return this._orientation;
-  }
-
-  setOrientation(orientation: BUBBLE_ORIENTATION) {
-    this._orientation = orientation;
-  }
-
-  getBubble1Coordinate(): COORDINATE {
-    return this._bubble1Coordinate;
-  }
-
-  setBubble1Coordinate(coordinate: COORDINATE) {
-    this._bubble1Coordinate = coordinate;
-  }
-
-  getBubble2Coordinate(): COORDINATE {
-    return BubbleUtils.getBubbleTwoCoordinate(this);
-  }
-}
-
-
-export enum BUBBLE_ORIENTATION {
+export enum BubbleOrientation {
   VERTICAL_1_TOP,
-  VERTICAL_2_TOP,
+  VERTICAL_1_BOTTOM,
   HORIZONTAL_1_LEFT,
-  HORIZONTAL_2_LEFT
+  HORIZONTAL_1_RIGHT
 }
+
 
 export class BubbleUtils {
-
-  public static generateRandomBubblePair(): BubblePair {
-    let pair: BubblePair = new BubblePair(this.getRandomInt(TOTAL_BUBBLE_COLORS), this.getRandomInt(TOTAL_BUBBLE_COLORS));
-    pair.setBubble1Coordinate(MapUtils.getInnerBoardStartingCoordinate());
-    return pair;
-  }
 
   public static generateRandomBubbleColorImageName(): string {
     let val: number = this.getRandomInt(TOTAL_BUBBLE_COLORS);
@@ -88,26 +41,65 @@ export class BubbleUtils {
     }
   }
 
-  public static getBubbleTwoCoordinate(pair: BubblePair): COORDINATE {
-    let coordinate = { X: pair.getBubble1Coordinate().X, Y: pair.getBubble1Coordinate().Y };
-    switch(pair.getOrientation()) {
-      case BUBBLE_ORIENTATION.VERTICAL_1_TOP:
+  public static getBubbleTwoCoordinateAfterRotation(bubble1Coordinate: Coordinate, newOrientation: BubbleOrientation ): Coordinate {
+    let coordinate = { X: bubble1Coordinate.X, Y: bubble1Coordinate.Y };
+    switch(newOrientation) {
+      case BubbleOrientation.VERTICAL_1_TOP:
         coordinate.Y += TILE_HEIGHT;
         break;
-      case BUBBLE_ORIENTATION.VERTICAL_2_TOP:
+      case BubbleOrientation.VERTICAL_1_BOTTOM:
         coordinate.Y -= TILE_HEIGHT;
         break;
-      case BUBBLE_ORIENTATION.HORIZONTAL_1_LEFT:
+      case BubbleOrientation.HORIZONTAL_1_LEFT:
         coordinate.X += TILE_WIDTH;
         break;
-      case BUBBLE_ORIENTATION.HORIZONTAL_2_LEFT:
-        coordinate.X += TILE_WIDTH;
+      case BubbleOrientation.HORIZONTAL_1_RIGHT:
+        coordinate.X -= TILE_WIDTH;
         break;
       default:
-        throw 'Invalid orientation';
+        throw "Invalid orientation.";
         break;
     }
 
+    return coordinate;
+  }
+
+  public static changeOrientationByRotation(currOrientation: BubbleOrientation, rotation: RotationDirection): BubbleOrientation {
+    //TODO: find a cool way of managing rotation between orientations.
+    if ((currOrientation === BubbleOrientation.HORIZONTAL_1_LEFT && rotation === RotationDirection.CLOCKWISE)
+      || currOrientation === BubbleOrientation.HORIZONTAL_1_RIGHT && rotation === RotationDirection.COUNTER_CLOCKWISE) {
+      return BubbleOrientation.VERTICAL_1_TOP;
+    } else if ((currOrientation === BubbleOrientation.HORIZONTAL_1_LEFT && rotation === RotationDirection.COUNTER_CLOCKWISE)
+      || currOrientation === BubbleOrientation.HORIZONTAL_1_RIGHT && rotation === RotationDirection.CLOCKWISE) {
+      return BubbleOrientation.VERTICAL_1_BOTTOM;
+    } else if ((currOrientation === BubbleOrientation.VERTICAL_1_TOP && rotation === RotationDirection.COUNTER_CLOCKWISE)
+      || currOrientation === BubbleOrientation.VERTICAL_1_BOTTOM && rotation === RotationDirection.CLOCKWISE) {
+      return BubbleOrientation.HORIZONTAL_1_LEFT;
+    } else if ((currOrientation === BubbleOrientation.VERTICAL_1_TOP && rotation === RotationDirection.CLOCKWISE)
+      || currOrientation === BubbleOrientation.VERTICAL_1_BOTTOM && rotation === RotationDirection.COUNTER_CLOCKWISE) {
+      return BubbleOrientation.HORIZONTAL_1_RIGHT;
+    } else {
+      throw "Invalid rotation.";
+    }
+  }
+
+  public static getBubble1CoordinateAfterRotation(coordinate: Coordinate, orientation: BubbleOrientation, rotation: RotationDirection): Coordinate {
+    if (MapUtils.isLeftMostInnerBoundaryCoordinate(coordinate)) {
+      if ((orientation === BubbleOrientation.VERTICAL_1_BOTTOM && rotation === RotationDirection.COUNTER_CLOCKWISE )
+          || (orientation === BubbleOrientation.VERTICAL_1_TOP && rotation === RotationDirection.CLOCKWISE)) {
+          return {X: coordinate.X + TILE_WIDTH, Y: coordinate.Y};
+        }
+    } else if (MapUtils.isRightMostInnerBoundaryCoordinate(coordinate)) {
+      if ((orientation === BubbleOrientation.VERTICAL_1_BOTTOM && rotation === RotationDirection.CLOCKWISE)
+        || (orientation === BubbleOrientation.VERTICAL_1_TOP && rotation === RotationDirection.COUNTER_CLOCKWISE)) {
+        return {X: coordinate.X - TILE_WIDTH, Y: coordinate.Y};
+      }
+    } else if (MapUtils.isBottomMostInnerBoundaryCoordinate(coordinate)) {
+      if ((orientation === BubbleOrientation.HORIZONTAL_1_LEFT && rotation === RotationDirection.CLOCKWISE)
+        || (orientation === BubbleOrientation.HORIZONTAL_1_RIGHT && rotation === RotationDirection.COUNTER_CLOCKWISE)) {
+        return {X: coordinate.X, Y: coordinate.Y - TILE_HEIGHT};
+      }
+    }
     return coordinate;
   }
 

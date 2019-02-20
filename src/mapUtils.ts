@@ -19,66 +19,71 @@ export const MAP_FULL_TILE_WIDTH = MAP_LEFT_BORDER_TILE_WIDTH + MAP_INNER_BOARD_
 
 export const MAP_RIGHT_BORDER_STARTING_TILE_WIDTH = MAP_LEFT_BORDER_TILE_WIDTH + MAP_INNER_BOARD_TILE_WIDTH;
 
+export const BUBBLE_POSITION_X_OFFSET = TILE_WIDTH / 2;
+export const BUBBLE_POSITION_Y_OFFSET = TILE_HEIGHT / 2;
+
 //TODO: move to a tile util class
 const BOARD_INNER_TILE_INDEX = 0;
 const BOARD_BORDER_TILE_INDEX = 1;
 
 
 
-export declare interface COORDINATE {
+export declare interface Coordinate {
   X: number;
   Y: number;
 }
 
 export class MapUtils {
-  public static isValidXBoundary(currX: number, increment: number): boolean {
+
+  private static isValidXBoundary(x: number) {
+    return x >= MAP_INNER_BOARD_START_X_PIXEL && x <= MAP_INNER_BOARD_END_X_PIXEL;
+  }
+  private static isValidYBoundary(y: number) {
+    return y <= MAP_INNER_BOARD_END_Y_PIXEL;
+  }
+
+  public static isValidXBoundaryWithIncrement(currX: number, increment: number): boolean {
     let newX = currX + increment;
-    return newX >= MAP_INNER_BOARD_START_X_PIXEL && newX <= MAP_INNER_BOARD_END_X_PIXEL;
+    return this.isValidXBoundary(newX);
   }
 
-  public static isValidYBoundary(currY: number, increment: number): boolean {
+  public static isValidYBoundaryWithIncrement(currY: number, increment: number): boolean {
     let newY = currY + increment;
-    return newY <= MAP_INNER_BOARD_END_Y_PIXEL;
+    return this.isValidYBoundary(newY);
   }
 
-  public static getInnerBoardXIndex(): number {
-    return MAP_LEFT_BORDER_TILE_WIDTH * TILE_WIDTH;
+  public static isValidCoordinateBoundary(coordinate: Coordinate): boolean {
+    return this.isValidXBoundary(coordinate.X) && this.isValidYBoundary(coordinate.Y);
   }
 
-  public static getInnerBoardYIndex(): number {
-    return 0;
+  public static isLeftMostInnerBoundaryCoordinate(coordinate: Coordinate): boolean {
+    return coordinate.X === (MAP_INNER_BOARD_START_X_PIXEL + BUBBLE_POSITION_X_OFFSET);
   }
 
-  public static getInnerBoardTileWidth(): number {
-    return MAP_INNER_BOARD_TILE_WIDTH;
+  public static isRightMostInnerBoundaryCoordinate(coordinate: Coordinate): boolean {
+    return coordinate.X === (MAP_INNER_BOARD_END_X_PIXEL - BUBBLE_POSITION_X_OFFSET);
   }
 
-  public static getInnerBoardTileHeight(): number {
-    return MAP_INNER_BOARD_TILE_HEIGHT;
+  public static isBottomMostInnerBoundaryCoordinate(coordinate: Coordinate): boolean {
+    return coordinate.Y === (MAP_INNER_BOARD_END_Y_PIXEL - BUBBLE_POSITION_Y_OFFSET);
   }
 
-  public static getInnerBoardStartingCoordinate(): COORDINATE {
-    return this.convertTileIndexToWorldMapCoordinate(4, 0);
+  public static getInnerBoardStartingCoordinate(): Coordinate {
+    return this.convertTileIndexToWorldMapCoordinate(4, -2);
   }
 
-  public static getInnerBoardTopLeftPixelCoordinate(): COORDINATE {
+  public static getInnerBoardTopLeftPixelCoordinate(): Coordinate {
     return { X: MAP_LEFT_BORDER_TILE_WIDTH*TILE_WIDTH, Y: 0 };
   }
 
-  public static convertTileIndexToWorldMapCoordinate(x: number, y: number): COORDINATE {
-    let startCoordinate: COORDINATE = this.getInnerBoardTopLeftPixelCoordinate();
+  public static convertTileIndexToWorldMapCoordinate(x: number, y: number): Coordinate {
+    let startCoordinate: Coordinate = this.getInnerBoardTopLeftPixelCoordinate();
     return { X: x*TILE_WIDTH + startCoordinate.X, Y: y*TILE_WIDTH + startCoordinate.Y };
-  }
-
-  public static getCoordinateAfterOneTileDrop(coordinate: COORDINATE): COORDINATE {
-    return { X: coordinate.X, Y: coordinate.Y + TILE_WIDTH };
   }
 
   public static generateMap(): number[][] {
     let fullMap = [];
     for (let row = 0; row < MAP_FULL_TILE_HEIGHT; row++) {
-
-
       let mapRow = [];
 
       for (let col = 0; col < MAP_LEFT_BORDER_TILE_WIDTH; col++) {

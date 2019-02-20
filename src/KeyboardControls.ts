@@ -6,9 +6,9 @@ import TimerEvent = Phaser.Time.TimerEvent;
 
 const BUTTON_HOLD_DEBOUNCE_DELAY = 40;
 
-enum RotationDirection {
-  LEFT,
-  RIGHT
+export enum RotationDirection {
+  COUNTER_CLOCKWISE,
+  CLOCKWISE
 }
 
 export class KeyboardControls {
@@ -82,8 +82,12 @@ export class KeyboardControls {
   bindRotateKeys(rotationKeyCallback: Function): void {
     let leftRotate = this.context.input.keyboard.addKey(KeyCodes.A);
     leftRotate.on('down', function() {
-      // keyPressCallback.bind(TileUtils.MOVE_DOWN_VECTOR);
-      this.downKeyRepeatTimer = this.context.time.addEvent({loop: true, delay: BUTTON_HOLD_DEBOUNCE_DELAY, callback: rotationKeyCallback, callbackScope: this.context, args: [TileUtils.MOVE_DOWN_VECTOR]});
+      rotationKeyCallback.apply(this.context, [RotationDirection.COUNTER_CLOCKWISE]);
+    }, this);
+
+    let rightRotate = this.context.input.keyboard.addKey(KeyCodes.S);
+    rightRotate.on('down', function() {
+      rotationKeyCallback.apply(this.context, [RotationDirection.CLOCKWISE]);
     }, this);
   }
 }
