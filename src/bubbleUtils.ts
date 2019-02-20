@@ -1,17 +1,15 @@
 import { COORDINATE, MapUtils, TILE_HEIGHT, TILE_WIDTH } from './mapUtils';
 
-//TODO: find better way to enumerate these
-const BUBBLE_RED = 0;
-const BUBBLE_BLUE = 1;
-const BUBBLE_PURPLE = 2;
-const BUBBLE_YELLOW = 3;
-const BUBBLE_GREEN = 4;
-const BUBBLE_ORANGE = 5;
-
 const TOTAL_BUBBLE_COLORS = 6;
+export const BubbleColorEnum = {
+  RED: { value: 0, imageName: 'tile-bubble-red' },
+  BLUE: { value: 1, imageName: 'tile-bubble-blue' },
+  PURPLE: { value: 2, imageName: 'tile-bubble-purple' },
+  YELLOW: { value: 3, imageName: 'tile-bubble-yellow' },
+  GREEN: { value: 4, imageName: 'tile-bubble-green' },
+  ORANGE: { value: 5, imageName: 'tile-bubble-orange' },
+};
 
-export const BUBBLE_FALL_NORMAL_SPEED = 20;
-export const BUBBLE_FALL_ACCELERATED_SPEED = 800;
 
 export class BubblePair {
   private _bubble1Coordinate: COORDINATE;
@@ -68,6 +66,26 @@ export class BubbleUtils {
     let pair: BubblePair = new BubblePair(this.getRandomInt(TOTAL_BUBBLE_COLORS), this.getRandomInt(TOTAL_BUBBLE_COLORS));
     pair.setBubble1Coordinate(MapUtils.getInnerBoardStartingCoordinate());
     return pair;
+  }
+
+  public static generateRandomBubbleColorImageName(): string {
+    let val: number = this.getRandomInt(TOTAL_BUBBLE_COLORS);
+    switch(val) {
+      case BubbleColorEnum.BLUE.value:
+        return BubbleColorEnum.BLUE.imageName;
+      case BubbleColorEnum.RED.value:
+        return BubbleColorEnum.RED.imageName;
+      case BubbleColorEnum.GREEN.value:
+        return BubbleColorEnum.GREEN.imageName;
+      case BubbleColorEnum.YELLOW.value:
+        return BubbleColorEnum.YELLOW.imageName;
+      case BubbleColorEnum.ORANGE.value:
+        return BubbleColorEnum.ORANGE.imageName;
+      case BubbleColorEnum.PURPLE.value:
+        return BubbleColorEnum.PURPLE.imageName;
+      default:
+        throw "Invalid bubble color."
+    }
   }
 
   public static getBubbleTwoCoordinate(pair: BubblePair): COORDINATE {

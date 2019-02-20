@@ -9,8 +9,10 @@ export const MAP_BOTTOM_BORDER_TILE_HEIGHT = 2;
 export const MAP_INNER_BOARD_TILE_WIDTH = 10;
 export const MAP_INNER_BOARD_TILE_HEIGHT = 16;
 
-export const MAP_INNER_BOARD_MIN_PIXEL = MAP_LEFT_BORDER_TILE_WIDTH * TILE_WIDTH;
-export const MAP_INNER_BOARD_MAX_PIXEL = ( MAP_LEFT_BORDER_TILE_WIDTH + MAP_INNER_BOARD_TILE_WIDTH ) * TILE_WIDTH;
+export const MAP_INNER_BOARD_START_X_PIXEL = MAP_LEFT_BORDER_TILE_WIDTH * TILE_WIDTH;
+const MAP_INNER_BOARD_START_Y_PIXEL = 0;
+export const MAP_INNER_BOARD_END_X_PIXEL = ( MAP_LEFT_BORDER_TILE_WIDTH + MAP_INNER_BOARD_TILE_WIDTH ) * TILE_WIDTH;
+export const MAP_INNER_BOARD_END_Y_PIXEL = MAP_INNER_BOARD_TILE_HEIGHT * TILE_WIDTH;
 
 export const MAP_FULL_TILE_HEIGHT = MAP_INNER_BOARD_TILE_HEIGHT + MAP_BOTTOM_BORDER_TILE_HEIGHT;
 export const MAP_FULL_TILE_WIDTH = MAP_LEFT_BORDER_TILE_WIDTH + MAP_INNER_BOARD_TILE_WIDTH + MAP_RIGHT_BORDER_TILE_WIDTH;
@@ -31,7 +33,12 @@ export declare interface COORDINATE {
 export class MapUtils {
   public static isValidXBoundary(currX: number, increment: number): boolean {
     let newX = currX + increment;
-    return newX >= MAP_INNER_BOARD_MIN_PIXEL && newX <= MAP_INNER_BOARD_MAX_PIXEL;
+    return newX >= MAP_INNER_BOARD_START_X_PIXEL && newX <= MAP_INNER_BOARD_END_X_PIXEL;
+  }
+
+  public static isValidYBoundary(currY: number, increment: number): boolean {
+    let newY = currY + increment;
+    return newY <= MAP_INNER_BOARD_END_Y_PIXEL;
   }
 
   public static getInnerBoardXIndex(): number {
