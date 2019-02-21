@@ -2,7 +2,9 @@ import { Coordinate, MapUtils, TILE_HEIGHT, TILE_WIDTH } from './mapUtils';
 import { RotationDirection } from './KeyboardControls';
 
 const TOTAL_BUBBLE_COLORS = 6;
-export const BubbleColorEnum = {
+export const DATA_KEY_COLOR_NAME = "COLOR-NAME";
+
+export const BubbleColor = {
   RED: { value: 0, imageName: 'tile-bubble-red' },
   BLUE: { value: 1, imageName: 'tile-bubble-blue' },
   PURPLE: { value: 2, imageName: 'tile-bubble-purple' },
@@ -20,24 +22,32 @@ export enum BubbleOrientation {
 
 
 export class BubbleUtils {
+  public static convertBubbleColorImageNameToNumValue(name: string): number {
+    for (let key in BubbleColor) {
+      if(BubbleColor[key].imageName === name) {
+        return BubbleColor[key].value;
+      }
+    }
+    throw "Invalid bubble image name to color: " + name;
+  }
 
   public static generateRandomBubbleColorImageName(): string {
     let val: number = this.getRandomInt(TOTAL_BUBBLE_COLORS);
     switch(val) {
-      case BubbleColorEnum.BLUE.value:
-        return BubbleColorEnum.BLUE.imageName;
-      case BubbleColorEnum.RED.value:
-        return BubbleColorEnum.RED.imageName;
-      case BubbleColorEnum.GREEN.value:
-        return BubbleColorEnum.GREEN.imageName;
-      case BubbleColorEnum.YELLOW.value:
-        return BubbleColorEnum.YELLOW.imageName;
-      case BubbleColorEnum.ORANGE.value:
-        return BubbleColorEnum.ORANGE.imageName;
-      case BubbleColorEnum.PURPLE.value:
-        return BubbleColorEnum.PURPLE.imageName;
+      case BubbleColor.BLUE.value:
+        return BubbleColor.BLUE.imageName;
+      case BubbleColor.RED.value:
+        return BubbleColor.RED.imageName;
+      case BubbleColor.GREEN.value:
+        return BubbleColor.GREEN.imageName;
+      case BubbleColor.YELLOW.value:
+        return BubbleColor.YELLOW.imageName;
+      case BubbleColor.ORANGE.value:
+        return BubbleColor.ORANGE.imageName;
+      case BubbleColor.PURPLE.value:
+        return BubbleColor.PURPLE.imageName;
       default:
-        throw "Invalid bubble color."
+        throw "Invalid bubble color: " + val;
     }
   }
 

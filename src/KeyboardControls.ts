@@ -5,6 +5,7 @@ import KeyCodes = Phaser.Input.Keyboard.KeyCodes;
 import TimerEvent = Phaser.Time.TimerEvent;
 
 const BUTTON_HOLD_DEBOUNCE_DELAY = 40;
+const BUBBLE_DROP_SPEED = 750;
 
 export enum RotationDirection {
   COUNTER_CLOCKWISE,
@@ -34,7 +35,7 @@ export class KeyboardControls {
     this.context.input.keyboard.addCapture(Phaser.Input.Keyboard.KeyCodes.DOWN);
   }
   startDownwardMovement(downwardCallback: Function): void {
-    this.downwardMovementTimer = this.context.time.addEvent({loop: true, delay: 750, callback: downwardCallback, callbackScope: this.context, args: [TileUtils.MOVE_DOWN_VECTOR]});
+    this.downwardMovementTimer = this.context.time.addEvent({loop: true, delay: BUBBLE_DROP_SPEED, callback: downwardCallback, callbackScope: this.context, args: [TileUtils.MOVE_DOWN_VECTOR]});
   }
 
   bindMovementKeys(keyPressCallback: Function): void {

@@ -1,9 +1,3 @@
-/**
- * @author       Digitsensitive <digit.sensitivee@gmail.com>
- * @copyright    2018 - 2019 digitsensitive
- * @license      Digitsensitive
- */
-
 import "phaser";
 import { MainScene } from "./scenes/mainScene";
 
@@ -16,7 +10,10 @@ const config: GameConfig = {
   physics: {
     default: "arcade",
     arcade: {
-      gravity: { y: 200 }
+      gravity: {
+        x: 0,
+        y: 0
+      }
     }
   }
 };

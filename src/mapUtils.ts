@@ -68,7 +68,7 @@ export class MapUtils {
     return coordinate.Y === (MAP_INNER_BOARD_END_Y_PIXEL - BUBBLE_POSITION_Y_OFFSET);
   }
 
-  public static getInnerBoardStartingCoordinate(): Coordinate {
+  public static getInnerBoardBubbleStartingCoordinate(): Coordinate {
     return this.convertTileIndexToWorldMapCoordinate(4, -2);
   }
 
@@ -79,6 +79,22 @@ export class MapUtils {
   public static convertTileIndexToWorldMapCoordinate(x: number, y: number): Coordinate {
     let startCoordinate: Coordinate = this.getInnerBoardTopLeftPixelCoordinate();
     return { X: x*TILE_WIDTH + startCoordinate.X, Y: y*TILE_WIDTH + startCoordinate.Y };
+  }
+
+  public static convertWorldMapXPixelToTileIndex(x: number) {
+    return Math.floor((x-BUBBLE_POSITION_X_OFFSET) / TILE_WIDTH);
+  }
+
+  public static convertWorldMapYPixelToTileIndex(y: number) {
+    return Math.floor(y / TILE_WIDTH);
+  }
+
+  public static convertInnerMapXPixelToTileIndex(x: number) {
+    return Math.floor((x-BUBBLE_POSITION_X_OFFSET) / TILE_WIDTH) - MAP_LEFT_BORDER_TILE_WIDTH;
+  }
+
+  public static convertInnerMapYPixelToTileIndex(y: number) {
+    return Math.floor(y / TILE_WIDTH);
   }
 
   public static generateMap(): number[][] {
