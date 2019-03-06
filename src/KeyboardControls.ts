@@ -5,7 +5,7 @@ import KeyCodes = Phaser.Input.Keyboard.KeyCodes;
 import TimerEvent = Phaser.Time.TimerEvent;
 
 const BUTTON_HOLD_DEBOUNCE_DELAY = 40;
-const BUBBLE_DROP_SPEED = 750;
+const BUBBLE_DROP_SPEED = 1050;
 
 export enum RotationDirection {
   COUNTER_CLOCKWISE,

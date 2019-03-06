@@ -28,7 +28,7 @@ const BOARD_BORDER_TILE_INDEX = 1;
 
 
 
-export declare interface Coordinate {
+export interface Coordinate {
   X: number;
   Y: number;
 }
@@ -54,18 +54,6 @@ export class MapUtils {
 
   public static isValidCoordinateBoundary(coordinate: Coordinate): boolean {
     return this.isValidXBoundary(coordinate.X) && this.isValidYBoundary(coordinate.Y);
-  }
-
-  public static isLeftMostInnerBoundaryCoordinate(coordinate: Coordinate): boolean {
-    return coordinate.X === (MAP_INNER_BOARD_START_X_PIXEL + BUBBLE_POSITION_X_OFFSET);
-  }
-
-  public static isRightMostInnerBoundaryCoordinate(coordinate: Coordinate): boolean {
-    return coordinate.X === (MAP_INNER_BOARD_END_X_PIXEL - BUBBLE_POSITION_X_OFFSET);
-  }
-
-  public static isBottomMostInnerBoundaryCoordinate(coordinate: Coordinate): boolean {
-    return coordinate.Y === (MAP_INNER_BOARD_END_Y_PIXEL - BUBBLE_POSITION_Y_OFFSET);
   }
 
   public static getInnerBoardBubbleStartingCoordinate(): Coordinate {
@@ -94,7 +82,7 @@ export class MapUtils {
   }
 
   public static convertInnerMapYPixelToTileIndex(y: number) {
-    return Math.floor(y / TILE_WIDTH);
+    return Math.floor((y-BUBBLE_POSITION_Y_OFFSET) / TILE_WIDTH);
   }
 
   public static generateMap(): number[][] {

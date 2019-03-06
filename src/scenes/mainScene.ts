@@ -5,7 +5,7 @@ import {
   TILE_HEIGHT
 } from '../mapUtils';
 import { KeyboardControls, RotationDirection } from '../KeyboardControls';
-import { BubbleColor, BubbleOrientation, BubbleUtils, DATA_KEY_COLOR_NAME } from '../bubbleUtils';
+import { BubbleColor, BubbleCoordinatePair, BubbleOrientation, BubbleUtils, DATA_KEY_COLOR_NAME } from '../bubbleUtils';
 import StaticTilemapLayer = Phaser.Tilemaps.StaticTilemapLayer;
 import { TileUtils } from '../tileUtils';
 import Sprite = Phaser.Physics.Arcade.Sprite;
@@ -59,7 +59,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   moveActiveBubble(vector: Coordinate): void {
-    if(MapUtils.isValidXBoundaryWithIncrement(this.activeBubble1.x, vector.X) && MapUtils.isValidXBoundaryWithIncrement(this.activeBubble2.x, vector.X)
+    if(MapUtils.isValidXBoundaryWithIncrement(this.activeBubble1.x, vector.X) && MapUtils.isValidXBoundaryWithIncrement(this.activeBubble2.x, vector.Y)
       && !this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble1.x, this.activeBubble1.y, vector)
       && !this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble2.x, this.activeBubble2.y, vector)
       && MapUtils.isValidYBoundaryWithIncrement(this.activeBubble1.y, vector.Y) && MapUtils.isValidYBoundaryWithIncrement(this.activeBubble2.y, vector.Y)) {
@@ -84,15 +84,19 @@ export class MainScene extends Phaser.Scene {
   }
 
   rotateActiveBubble(rotationDirection: RotationDirection): void {
-    let newOrientation = BubbleUtils.changeOrientationByRotation(this.currentOrientation, rotationDirection);
+    let bubble1Coordinate: Coordinate = {X: this.activeBubble1.x, Y: this.activeBubble1.y};
+    let bubble2Coordinate: Coordinate = {X: this.activeBubble2.x, Y: this.activeBubble2.y};
 
-    //TODO: need to account for existing bubbles on the board.
-    let bubble1NewCoordinate: Coordinate = BubbleUtils.getBubble1CoordinateAfterRotation({X: this.activeBubble1.x, Y: this.activeBubble1.y}, this.currentOrientation, rotationDirection);
-    let bubble2NewCoordinate: Coordinate = BubbleUtils.getBubbleTwoCoordinateAfterRotation(bubble1NewCoordinate, newOrientation);
-    this.activeBubble1.setPosition(bubble1NewCoordinate.X, bubble1NewCoordinate.Y);
-    this.activeBubble2.setPosition(bubble2NewCoordinate.X, bubble2NewCoordinate.Y);
+    let coordinatePairPostRotation: BubbleCoordinatePair = BubbleUtils.getCoordinatePairAfterRotation(
+        bubble1Coordinate, bubble2Coordinate, this.currentOrientation, rotationDirection, this.boardTracker);
 
-    this.currentOrientation = newOrientation;
+    if (coordinatePairPostRotation) {
+      let newOrientation = BubbleUtils.changeOrientationByRotation(this.currentOrientation, rotationDirection);
+      this.currentOrientation = newOrientation;
+
+      this.activeBubble1.setPosition(coordinatePairPostRotation.bubble1Coordinate.X, coordinatePairPostRotation.bubble1Coordinate.Y);
+      this.activeBubble2.setPosition(coordinatePairPostRotation.bubble2Coordinate.X, coordinatePairPostRotation.bubble2Coordinate.Y);
+    }
   }
 
   //TODO: move me somewhere else
@@ -102,8 +106,7 @@ export class MainScene extends Phaser.Scene {
     let color2 = BubbleUtils.generateRandomBubbleColorImageName();
 
     this.activeBubble1 = this.physics.add.sprite(MapUtils.getInnerBoardBubbleStartingCoordinate().X + BUBBLE_POSITION_X_OFFSET,
-        MapUtils.getInnerBoardBubbleStartingCoordinate().Y - BUBBLE_POSITION_Y_OFFSET,
-        color1);
+        MapUtils.getInnerBoardBubbleStartingCoordinate().Y - BUBBLE_POSITION_Y_OFFSET, color1);
     this.activeBubble1.setData(DATA_KEY_COLOR_NAME, color1);
 
     this.activeBubble2 = this.physics.add.sprite(this.activeBubble1.x, this.activeBubble1.y + TILE_HEIGHT, color2);

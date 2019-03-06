@@ -21,7 +21,6 @@ export class BoardTracker {
       }
       this.board.push(row);
     }
-    console.log(this.board);
   }
 
   public putBubbleByPixel(pixelX: number, pixelY: number, val: number) {
@@ -36,9 +35,13 @@ export class BoardTracker {
     this.board[tileY][tileX] = val;
   }
 
-  public isTileOccupied(x: number, y: number) {
+  public isTileOccupiedByPixelCoordinate(coordinate: Coordinate): boolean {
+    return this.isTileOccupied(MapUtils.convertInnerMapXPixelToTileIndex(coordinate.X), MapUtils.convertInnerMapYPixelToTileIndex(coordinate.Y));
+  }
+
+  public isTileOccupied(x: number, y: number): boolean {
     if(!this.isValidBoundary(x,y)) {
-      return;
+      return false;
     }
     return this.board[y][x] !== EMPTY_SPOT;
   }
