@@ -1,4 +1,3 @@
-
 export const TILE_WIDTH = 40;
 export const TILE_HEIGHT = 40;
 
@@ -10,22 +9,19 @@ export const MAP_INNER_BOARD_TILE_WIDTH = 10;
 export const MAP_INNER_BOARD_TILE_HEIGHT = 16;
 
 export const MAP_INNER_BOARD_START_X_PIXEL = MAP_LEFT_BORDER_TILE_WIDTH * TILE_WIDTH;
-const MAP_INNER_BOARD_START_Y_PIXEL = 0;
 export const MAP_INNER_BOARD_END_X_PIXEL = ( MAP_LEFT_BORDER_TILE_WIDTH + MAP_INNER_BOARD_TILE_WIDTH ) * TILE_WIDTH;
 export const MAP_INNER_BOARD_END_Y_PIXEL = MAP_INNER_BOARD_TILE_HEIGHT * TILE_WIDTH;
 
 export const MAP_FULL_TILE_HEIGHT = MAP_INNER_BOARD_TILE_HEIGHT + MAP_BOTTOM_BORDER_TILE_HEIGHT;
 export const MAP_FULL_TILE_WIDTH = MAP_LEFT_BORDER_TILE_WIDTH + MAP_INNER_BOARD_TILE_WIDTH + MAP_RIGHT_BORDER_TILE_WIDTH;
 
-export const MAP_RIGHT_BORDER_STARTING_TILE_WIDTH = MAP_LEFT_BORDER_TILE_WIDTH + MAP_INNER_BOARD_TILE_WIDTH;
-
 export const BUBBLE_POSITION_X_OFFSET = TILE_WIDTH / 2;
 export const BUBBLE_POSITION_Y_OFFSET = TILE_HEIGHT / 2;
 
 //TODO: move to a tile util class
-const BOARD_INNER_TILE_INDEX = 0;
-const BOARD_BORDER_TILE_INDEX = 1;
-
+export const EMPTY_TILE = 0;
+export const VISITED_TILE = -1;
+export const BOARD_BORDER_TILE_INDEX = 1;
 
 
 export interface Coordinate {
@@ -85,6 +81,16 @@ export class MapUtils {
     return Math.floor((y-BUBBLE_POSITION_Y_OFFSET) / TILE_WIDTH);
   }
 
+
+  public static isValidTileBoundary(board: number[][], x: number, y: number) {
+    if ( x < 0 ||  y < 0
+      || y >= board.length || x >= board[0].length) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   public static generateMap(): number[][] {
     let fullMap = [];
     for (let row = 0; row < MAP_FULL_TILE_HEIGHT; row++) {
@@ -96,7 +102,7 @@ export class MapUtils {
 
       //TODO: clean up this logic
       for (let col = 0; col < MAP_INNER_BOARD_TILE_WIDTH; col++) {
-        let tileVal = row >= MAP_INNER_BOARD_TILE_HEIGHT ? BOARD_BORDER_TILE_INDEX : BOARD_INNER_TILE_INDEX;
+        let tileVal = row >= MAP_INNER_BOARD_TILE_HEIGHT ? BOARD_BORDER_TILE_INDEX : EMPTY_TILE;
         mapRow.push(tileVal);
       }
 

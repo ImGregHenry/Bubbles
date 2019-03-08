@@ -2,16 +2,17 @@ import { Coordinate, MapUtils, TILE_HEIGHT, TILE_WIDTH } from './mapUtils';
 import { RotationDirection } from './KeyboardControls';
 import { BoardTracker } from './boardTracker';
 
+export const MINIMUM_BUBBLE_POP_PAIRING_SIZE = 4;
 const TOTAL_BUBBLE_COLORS = 6;
 export const DATA_KEY_COLOR_NAME = "COLOR-NAME";
 
 export const BubbleColor = {
-  RED: { value: 0, imageName: 'tile-bubble-red' },
-  BLUE: { value: 1, imageName: 'tile-bubble-blue' },
-  PURPLE: { value: 2, imageName: 'tile-bubble-purple' },
-  YELLOW: { value: 3, imageName: 'tile-bubble-yellow' },
-  GREEN: { value: 4, imageName: 'tile-bubble-green' },
-  ORANGE: { value: 5, imageName: 'tile-bubble-orange' },
+  RED: { value: 1, imageName: 'tile-bubble-red' },
+  BLUE: { value: 2, imageName: 'tile-bubble-blue' },
+  PURPLE: { value: 3, imageName: 'tile-bubble-purple' },
+  YELLOW: { value: 4, imageName: 'tile-bubble-yellow' },
+  GREEN: { value: 5, imageName: 'tile-bubble-green' },
+  ORANGE: { value: 6, imageName: 'tile-bubble-orange' },
 };
 
 export enum BubbleOrientation {
@@ -26,6 +27,11 @@ export interface BubbleCoordinatePair {
   bubble2Coordinate: Coordinate;
 }
 
+export interface BubbleExplosionDetails {
+  coordinates: Coordinate[],
+  color: number
+}
+
 export class BubbleUtils {
   public static convertBubbleColorImageNameToNumValue(name: string): number {
     for (let key in BubbleColor) {
@@ -37,7 +43,7 @@ export class BubbleUtils {
   }
 
   public static generateRandomBubbleColorImageName(): string {
-    let val: number = this.getRandomInt(TOTAL_BUBBLE_COLORS);
+    let val: number = this.getRandomInt(1, TOTAL_BUBBLE_COLORS);
     switch(val) {
       case BubbleColor.BLUE.value:
         return BubbleColor.BLUE.imageName;
@@ -95,7 +101,7 @@ export class BubbleUtils {
     }
 
     // Invalid rotation: return null to indicate no rotation occurred.
-    return undefined;
+    return null;
   }
 
   private static isValidBubbleCoordinatePair(bubblePair: BubbleCoordinatePair, boardTracker: BoardTracker): boolean {
@@ -147,7 +153,7 @@ export class BubbleUtils {
     return coordinate;
   }
 
-  private static getRandomInt(max: number): number {
-    return Math.floor(Math.random() * Math.floor(max));
+  private static getRandomInt(startVal: number, max: number): number {
+    return startVal + Math.floor(Math.random() * max);
   }
 }

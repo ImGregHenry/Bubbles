@@ -1,11 +1,18 @@
 import {
   BUBBLE_POSITION_X_OFFSET, BUBBLE_POSITION_Y_OFFSET,
-  Coordinate,
+  Coordinate, EMPTY_TILE,
   MapUtils,
   TILE_HEIGHT
 } from '../mapUtils';
 import { KeyboardControls, RotationDirection } from '../KeyboardControls';
-import { BubbleColor, BubbleCoordinatePair, BubbleOrientation, BubbleUtils, DATA_KEY_COLOR_NAME } from '../bubbleUtils';
+import {
+  BubbleColor,
+  BubbleCoordinatePair,
+  BubbleExplosionDetails,
+  BubbleOrientation,
+  BubbleUtils,
+  DATA_KEY_COLOR_NAME
+} from '../bubbleUtils';
 import StaticTilemapLayer = Phaser.Tilemaps.StaticTilemapLayer;
 import { TileUtils } from '../tileUtils';
 import Sprite = Phaser.Physics.Arcade.Sprite;
@@ -59,27 +66,39 @@ export class MainScene extends Phaser.Scene {
   }
 
   moveActiveBubble(vector: Coordinate): void {
-    if(MapUtils.isValidXBoundaryWithIncrement(this.activeBubble1.x, vector.X) && MapUtils.isValidXBoundaryWithIncrement(this.activeBubble2.x, vector.Y)
+    if (MapUtils.isValidXBoundaryWithIncrement(this.activeBubble1.x, vector.X) && MapUtils.isValidXBoundaryWithIncrement(this.activeBubble2.x, vector.Y)
+      && MapUtils.isValidYBoundaryWithIncrement(this.activeBubble1.y, vector.Y) && MapUtils.isValidYBoundaryWithIncrement(this.activeBubble2.y, vector.Y)
       && !this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble1.x, this.activeBubble1.y, vector)
-      && !this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble2.x, this.activeBubble2.y, vector)
-      && MapUtils.isValidYBoundaryWithIncrement(this.activeBubble1.y, vector.Y) && MapUtils.isValidYBoundaryWithIncrement(this.activeBubble2.y, vector.Y)) {
+      && !this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble2.x, this.activeBubble2.y, vector)) {
       this.activeBubble1.setPosition(this.activeBubble1.x + vector.X, this.activeBubble1.y + vector.Y);
       this.activeBubble2.setPosition(this.activeBubble2.x + vector.X, this.activeBubble2.y + vector.Y);
     } else if (vector === TileUtils.MOVE_DOWN_VECTOR) {
-      if ( !this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble1.x, this.activeBubble1.y, vector)
+      if (!this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble1.x, this.activeBubble1.y, vector)
         || !this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble2.x, this.activeBubble2.y, vector)){
         //TODO: handle splitting active bubbles when a half an active bubble collision occurs
       }
       this.stopBubble(this.activeBubble1);
       this.stopBubble(this.activeBubble2);
+
+      let explosions: BubbleExplosionDetails[] = this.boardTracker.findBubblePopPixelPairs();
+      explosions.forEach(function(e) {
+        e.coordinates.forEach(function(c) {
+          let spr = this.boardTracker.getBubbleSpriteFromBoard(c.X, c.Y);
+          spr.destroy();
+          this.boardTracker.putBubbleSpriteByTile(c.X, c.Y, null);
+          this.boardTracker.putBubbleByTile(c.X, c.Y, EMPTY_TILE);
+        }, this);
+      }, this);
+
       this.createActiveBubblePair();
     }
   }
 
   stopBubble(activeBubble: Sprite) {
     let color1 = activeBubble.getData(DATA_KEY_COLOR_NAME);
-    this.physics.add.sprite(activeBubble.x, activeBubble.y, color1);
+    let sprite: Sprite = this.physics.add.sprite(activeBubble.x, activeBubble.y, color1);
     activeBubble.destroy(true);
+    this.boardTracker.putBubbleSpriteByPixel(activeBubble.x, activeBubble.y, sprite);
     this.boardTracker.putBubbleByPixel(activeBubble.x, activeBubble.y, BubbleUtils.convertBubbleColorImageNameToNumValue(color1));
   }
 
