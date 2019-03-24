@@ -1,6 +1,6 @@
 import { Coordinate, MapUtils, TILE_HEIGHT, TILE_WIDTH } from './mapUtils';
-import { RotationDirection } from './KeyboardControls';
-import { BoardTracker } from './boardTracker';
+import { RotationDirection } from '../KeyboardControls';
+import { BoardTracker } from '../boardTracker';
 
 export const MINIMUM_BUBBLE_POP_PAIRING_SIZE = 4;
 const TOTAL_BUBBLE_COLORS = 6;

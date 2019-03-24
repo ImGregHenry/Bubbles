@@ -6,9 +6,9 @@ import {
   MAP_INNER_BOARD_TILE_WIDTH,
   MapUtils,
   TILE_WIDTH, VISITED_TILE
-} from './mapUtils';
-import { BubbleExplosionDetails, MINIMUM_BUBBLE_POP_PAIRING_SIZE } from './bubbleUtils';
-import { TileUtils } from './tileUtils';
+} from './utils/mapUtils';
+import { BubbleExplosionDetails, MINIMUM_BUBBLE_POP_PAIRING_SIZE } from './utils/bubbleUtils';
+import { TileUtils } from './utils/tileUtils';
 import Sprite = Phaser.Physics.Arcade.Sprite;
 
 export interface BubbleDropVector {

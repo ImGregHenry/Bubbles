@@ -1,5 +1,5 @@
 import { MainScene } from './scenes/mainScene';
-import { TileUtils } from './tileUtils';
+import { TileUtils } from './utils/tileUtils';
 import CursorKeys = Phaser.Input.Keyboard.CursorKeys;
 import KeyCodes = Phaser.Input.Keyboard.KeyCodes;
 import TimerEvent = Phaser.Time.TimerEvent;

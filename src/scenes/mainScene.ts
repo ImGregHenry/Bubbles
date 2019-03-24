@@ -3,17 +3,17 @@ import {
   Coordinate,
   MapUtils,
   TILE_HEIGHT
-} from '../mapUtils';
-import { KeyboardControls, RotationDirection } from '../KeyboardControls';
+} from '../utils/mapUtils';
+import { KeyboardControls, RotationDirection } from '../keyboardControls';
 import {
   BubbleColor,
   BubbleCoordinatePair,
   BubbleOrientation,
   BubbleUtils,
   DATA_KEY_COLOR_NAME
-} from '../bubbleUtils';
+} from '../utils/bubbleUtils';
 import StaticTilemapLayer = Phaser.Tilemaps.StaticTilemapLayer;
-import { TileUtils } from '../tileUtils';
+import { TileUtils } from '../utils/tileUtils';
 import Sprite = Phaser.Physics.Arcade.Sprite;
 import { BoardTracker, BubbleDropVector } from '../boardTracker';
 import { TweenTracker } from '../tweenTracker';

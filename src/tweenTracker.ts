@@ -1,8 +1,7 @@
 import { BubbleDropVector, BoardTracker } from "./boardTracker";
 import { MainScene } from "./scenes/mainScene";
-import Sprite = Phaser.Physics.Arcade.Sprite;
-import { TileUtils } from "./tileUtils";
-import { MapUtils, Coordinate, TILE_WIDTH, TILE_HEIGHT } from "./mapUtils";
+  import Sprite = Phaser.Physics.Arcade.Sprite;
+import { MapUtils, Coordinate, TILE_WIDTH, TILE_HEIGHT } from "./utils/mapUtils";
 
 const TWEEN_MS_TIME_PER_TILE = 100;
 
@@ -16,9 +15,6 @@ export class TweenTracker {
   }
 
   startTweens(dropVectors: BubbleDropVector[], callback: Function): void {
-    // callback.bind(dropVectors);
-    // callback.bind(callback, dropVectors);
-
     let longestDropIndex: number = this.getLongestTweenVectorIndex(dropVectors);
     for(let i = 0; i < dropVectors.length; i++) {
       let bubbleSprite: Sprite = this.boardTracker.getBubbleSpriteFromBoard(dropVectors[i].start.X, dropVectors[i].start.Y);
