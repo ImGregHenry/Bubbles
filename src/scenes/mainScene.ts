@@ -1,6 +1,6 @@
 import {
   BUBBLE_POSITION_X_OFFSET, BUBBLE_POSITION_Y_OFFSET,
-  Coordinate, EMPTY_TILE,
+  Coordinate,
   MapUtils,
   TILE_HEIGHT
 } from '../mapUtils';
@@ -8,7 +8,6 @@ import { KeyboardControls, RotationDirection } from '../KeyboardControls';
 import {
   BubbleColor,
   BubbleCoordinatePair,
-  BubbleExplosionDetails,
   BubbleOrientation,
   BubbleUtils,
   DATA_KEY_COLOR_NAME
@@ -16,18 +15,20 @@ import {
 import StaticTilemapLayer = Phaser.Tilemaps.StaticTilemapLayer;
 import { TileUtils } from '../tileUtils';
 import Sprite = Phaser.Physics.Arcade.Sprite;
-import { BoardTracker } from '../boardTracker';
+import { BoardTracker, BubbleDropVector } from '../boardTracker';
+import { TweenTracker } from '../tweenTracker';
 
 
 
 export class MainScene extends Phaser.Scene {
   private keyboardControls: KeyboardControls;
   private boardTracker: BoardTracker;
+  private tweenTracker: TweenTracker;
   private staticTileMapLayer: StaticTilemapLayer;
   private activeBubble1: Sprite;
   private activeBubble2: Sprite;
   private currentOrientation: BubbleOrientation = BubbleOrientation.VERTICAL_1_TOP;
-
+  private isPaused: boolean = false;
 
   constructor() {
     super({key: "MainScene"});
@@ -47,6 +48,8 @@ export class MainScene extends Phaser.Scene {
 
   create(): void {
     this.boardTracker = new BoardTracker(this);
+    this.tweenTracker = new TweenTracker(this, this.boardTracker);
+
     const boardJson = MapUtils.generateMap();
 
     const map = this.make.tilemap({ data: boardJson, tileWidth: 40, tileHeight: 40 });
@@ -66,32 +69,49 @@ export class MainScene extends Phaser.Scene {
   }
 
   moveActiveBubble(vector: Coordinate): void {
-    if (MapUtils.isValidXBoundaryWithIncrement(this.activeBubble1.x, vector.X) && MapUtils.isValidXBoundaryWithIncrement(this.activeBubble2.x, vector.Y)
-      && MapUtils.isValidYBoundaryWithIncrement(this.activeBubble1.y, vector.Y) && MapUtils.isValidYBoundaryWithIncrement(this.activeBubble2.y, vector.Y)
-      && !this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble1.x, this.activeBubble1.y, vector)
-      && !this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble2.x, this.activeBubble2.y, vector)) {
+    if (this.isPaused) {
+      return;
+    }
+    if (MapUtils.isValidXBoundaryWithIncrement(this.activeBubble1.x, vector.X) && MapUtils.isValidXBoundaryWithIncrement(this.activeBubble2.x, vector.X)
+        && MapUtils.isValidYBoundaryWithIncrement(this.activeBubble1.y, vector.Y) && MapUtils.isValidYBoundaryWithIncrement(this.activeBubble2.y, vector.Y)
+        && !this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble1.x, this.activeBubble1.y, vector)
+        && !this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble2.x, this.activeBubble2.y, vector)) {
       this.activeBubble1.setPosition(this.activeBubble1.x + vector.X, this.activeBubble1.y + vector.Y);
       this.activeBubble2.setPosition(this.activeBubble2.x + vector.X, this.activeBubble2.y + vector.Y);
     } else if (vector === TileUtils.MOVE_DOWN_VECTOR) {
-      if (!this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble1.x, this.activeBubble1.y, vector)
-        || !this.boardTracker.isTileOccupiedByPixelWithVector(this.activeBubble2.x, this.activeBubble2.y, vector)){
-        //TODO: handle splitting active bubbles when a half an active bubble collision occurs
-      }
       this.stopBubble(this.activeBubble1);
       this.stopBubble(this.activeBubble2);
 
-      let explosions: BubbleExplosionDetails[] = this.boardTracker.findBubblePopPixelPairs();
-      explosions.forEach(function(e) {
-        e.coordinates.forEach(function(c) {
-          let spr = this.boardTracker.getBubbleSpriteFromBoard(c.X, c.Y);
-          spr.destroy();
-          this.boardTracker.putBubbleSpriteByTile(c.X, c.Y, null);
-          this.boardTracker.putBubbleByTile(c.X, c.Y, EMPTY_TILE);
-        }, this);
-      }, this);
-
-      this.createActiveBubblePair();
+      this.startBubbleDropPopLoop();
     }
+  }
+
+  startBubbleDropPopLoop(): void {
+    //TODO: disable movement
+    this.isPaused = true;
+
+    let dropVectors: BubbleDropVector[] = this.boardTracker.calculateBubbleDropVectors();
+    if (dropVectors && dropVectors.length > 0) {
+      this.tweenTracker.startTweens(dropVectors, this.tweenDropComplete);
+    } else {
+      this.popBubbles();
+    }
+  }
+
+  tweenDropComplete(dropVectors: BubbleDropVector[]): void {
+    this.boardTracker.updateTileLocationsAfterDrops(dropVectors);
+    this.popBubbles();
+  }
+
+  popBubbles(): void {
+    let isBubblePopped: boolean = this.boardTracker.popBubbles();
+      if (isBubblePopped) {
+        this.startBubbleDropPopLoop();
+      } else {
+        this.createActiveBubblePair();
+        //TODO: re-enable movement. 
+        this.isPaused = false;
+      }
   }
 
   stopBubble(activeBubble: Sprite) {
@@ -124,6 +144,7 @@ export class MainScene extends Phaser.Scene {
     let color1 = BubbleUtils.generateRandomBubbleColorImageName();
     let color2 = BubbleUtils.generateRandomBubbleColorImageName();
 
+    //TODO: find a way to manage this offest better (and all of the side effects it has)
     this.activeBubble1 = this.physics.add.sprite(MapUtils.getInnerBoardBubbleStartingCoordinate().X + BUBBLE_POSITION_X_OFFSET,
         MapUtils.getInnerBoardBubbleStartingCoordinate().Y - BUBBLE_POSITION_Y_OFFSET, color1);
     this.activeBubble1.setData(DATA_KEY_COLOR_NAME, color1);

@@ -11,6 +11,11 @@ import { BubbleExplosionDetails, MINIMUM_BUBBLE_POP_PAIRING_SIZE } from './bubbl
 import { TileUtils } from './tileUtils';
 import Sprite = Phaser.Physics.Arcade.Sprite;
 
+export interface BubbleDropVector {
+  start: Coordinate,
+  end: Coordinate
+}
+
 
 export class BoardTracker {
   private board: number[][] = [];
@@ -19,7 +24,6 @@ export class BoardTracker {
 
   constructor(context: MainScene) {
     this.context = context;
-    this.initBoard();
     this.initBoard();
   }
 
@@ -36,6 +40,12 @@ export class BoardTracker {
       this.board.push(row);
       this.bubbleBoard.push(bubbleRow);
     }
+  }
+
+  public clearTile(tileX: number, tileY: number) {
+    this.getBubbleSpriteFromBoard(tileX, tileY).destroy();
+    this.putBubbleSpriteByTile(tileX, tileY, null);
+    this.putBubbleByTile(tileX, tileY, EMPTY_TILE);
   }
 
   public putBubbleByPixel(pixelX: number, pixelY: number, val: number) {
@@ -85,6 +95,47 @@ export class BoardTracker {
     return null;
   }
 
+  public calculateBubbleDropVectors(): BubbleDropVector[] {
+    let yMax = this.board.length - 1;
+    let xMax = this.board[0].length - 1;
+    let dropVectors: BubbleDropVector[] = [];
+
+    for (let x: number = xMax; x >= 0; x--) {
+      let firstAvailable: number;
+      for (let y: number = yMax; y >= 0; y--) {  
+
+        if (!firstAvailable) {
+          if (this.isTileOccupied(x, y)) {
+            continue;
+          }
+          firstAvailable = y;
+        } else {
+          if (!this.isTileOccupied(x, y)) {
+            continue;
+          }
+          dropVectors.push(this.createDropVector(x, y, x, firstAvailable));
+          firstAvailable--;
+        }
+      }
+    }
+    return dropVectors;
+  }
+
+  private createDropVector(startX: number, startY: number, endX: number, endY: number): BubbleDropVector {
+    let dropVector: BubbleDropVector = { start: { X: startX, Y: startY }, end: { X: endX, Y: endY } };
+    return dropVector;
+  }
+
+  public updateTileLocationsAfterDrops(dropVectors: BubbleDropVector[]): void {
+    dropVectors.forEach(vector => {
+      this.bubbleBoard[vector.end.Y][vector.end.X] = this.bubbleBoard[vector.start.Y][vector.start.X];
+      this.bubbleBoard[vector.start.Y][vector.start.X] = null;
+
+      this.board[vector.end.Y][vector.end.X] = this.board[vector.start.Y][vector.start.X];
+      this.board[vector.start.Y][vector.start.X] = EMPTY_TILE;
+    });
+  }
+
   public putBubbleSpriteByPixel(pixelX: number, pixelY: number, sprite: Sprite): void {
     let x = MapUtils.convertInnerMapXPixelToTileIndex(pixelX);
     let y = MapUtils.convertInnerMapYPixelToTileIndex(pixelY);
@@ -97,9 +148,18 @@ export class BoardTracker {
     }
   }
 
+  public popBubbles(): boolean {
+    let explosions: BubbleExplosionDetails[] = this.findBubblePopPixelPairs();
+    explosions.forEach(function(e) {
+      e.coordinates.forEach(function(c) {
+        this.clearTile(c.X, c.Y);
+      }, this);
+    }, this);
 
+    return explosions.length > 0;
+  }
 
-  public findBubblePopPixelPairs(): BubbleExplosionDetails[] {
+  private findBubblePopPixelPairs(): BubbleExplosionDetails[] {
     let result: BubbleExplosionDetails[] = [];
     let board: number[][] = this.cloneBoard(this.board);
     for (let y = 0; y < board.length; y++) {

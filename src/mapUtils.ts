@@ -39,13 +39,11 @@ export class MapUtils {
   }
 
   public static isValidXBoundaryWithIncrement(currX: number, increment: number): boolean {
-    let newX = currX + increment;
-    return this.isValidXBoundary(newX);
+    return this.isValidXBoundary(currX + increment);
   }
 
   public static isValidYBoundaryWithIncrement(currY: number, increment: number): boolean {
-    let newY = currY + increment;
-    return this.isValidYBoundary(newY);
+    return this.isValidYBoundary(currY + increment);
   }
 
   public static isValidCoordinateBoundary(coordinate: Coordinate): boolean {
@@ -81,7 +79,6 @@ export class MapUtils {
     return Math.floor((y-BUBBLE_POSITION_Y_OFFSET) / TILE_WIDTH);
   }
 
-
   public static isValidTileBoundary(board: number[][], x: number, y: number) {
     if ( x < 0 ||  y < 0
       || y >= board.length || x >= board[0].length) {
@@ -100,7 +97,6 @@ export class MapUtils {
         mapRow.push(BOARD_BORDER_TILE_INDEX);
       }
 
-      //TODO: clean up this logic
       for (let col = 0; col < MAP_INNER_BOARD_TILE_WIDTH; col++) {
         let tileVal = row >= MAP_INNER_BOARD_TILE_HEIGHT ? BOARD_BORDER_TILE_INDEX : EMPTY_TILE;
         mapRow.push(tileVal);
