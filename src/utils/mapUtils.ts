@@ -1,5 +1,5 @@
-export const TILE_WIDTH = 40;
-export const TILE_HEIGHT = 40;
+export const TILE_WIDTH: number = 40;
+export const TILE_HEIGHT: number = 40;
 
 export const MAP_LEFT_BORDER_TILE_WIDTH = 2;
 export const MAP_RIGHT_BORDER_TILE_WIDTH = 2;
@@ -15,8 +15,8 @@ export const MAP_INNER_BOARD_END_Y_PIXEL = MAP_INNER_BOARD_TILE_HEIGHT * TILE_WI
 export const MAP_FULL_TILE_HEIGHT = MAP_INNER_BOARD_TILE_HEIGHT + MAP_BOTTOM_BORDER_TILE_HEIGHT;
 export const MAP_FULL_TILE_WIDTH = MAP_LEFT_BORDER_TILE_WIDTH + MAP_INNER_BOARD_TILE_WIDTH + MAP_RIGHT_BORDER_TILE_WIDTH;
 
-export const BUBBLE_POSITION_X_OFFSET = TILE_WIDTH / 2;
-export const BUBBLE_POSITION_Y_OFFSET = TILE_HEIGHT / 2;
+export const BUBBLE_POSITION_X_OFFSET: number = TILE_WIDTH / 2;
+export const BUBBLE_POSITION_Y_OFFSET: number = TILE_HEIGHT / 2;
 
 //TODO: move to a tile util class
 export const EMPTY_TILE = 0;
