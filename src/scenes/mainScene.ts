@@ -70,16 +70,17 @@ export class MainScene extends Phaser.Scene {
     this.activeBubblePair.rotateActiveBubble(rotationDirection);
   }
 
-  startBubbleDropPopLoop(): void {
+  bubbleDropPopLoop(): void {
     //TODO: disable movement
     this.setPaused(true);
-
+    
     let dropVectors: BubbleDropVector[] = this.boardTracker.calculateBubbleDropVectors();
     if (dropVectors && dropVectors.length > 0) {
       this.tweenTracker.startTweens(dropVectors, this.tweenDropComplete);
     } else {
       this.popBubbles();
     }
+  
   }
 
   tweenDropComplete(dropVectors: BubbleDropVector[]): void {
@@ -90,7 +91,7 @@ export class MainScene extends Phaser.Scene {
   popBubbles(): void {
     let isBubblePopped: boolean = BubblePopper.popBubbles(this.boardTracker.getBoard());
       if (isBubblePopped) {
-        this.startBubbleDropPopLoop();
+        this.bubbleDropPopLoop();
       } else {
         this.activeBubblePair = new BubbleSpritePair(this, this.boardTracker);
         //TODO: re-enable movement. 

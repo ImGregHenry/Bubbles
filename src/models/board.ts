@@ -1,6 +1,7 @@
 import { MAP_INNER_BOARD_TILE_WIDTH, MAP_INNER_BOARD_TILE_HEIGHT, TileCoordinate, EMPTY_TILE } from "../utils/mapUtils";
 import { BubbleSprite } from "./bubbleSprite";
 import { TileVector } from "./tileVectors";
+import { BubbleTileCoordinatePair } from "../utils/bubbleUtils";
 
 export const EMPTY_BUBBLE_SPRITE: BubbleSprite = null;
 
@@ -49,13 +50,10 @@ export class Board {
     return x >= 0 && y >=0 && y < this.board.length && x < this.board[0].length;
   }
 
-  public clearTile(tileX: number, tileY: number) {
-    if (this.isTileOccupied(tileX, tileY)) {
-      this._get(tileX, tileY).destroy();
-      //TODO: find better null 
-      this.putBubbleSpriteByTile(tileX, tileY, EMPTY_BUBBLE_SPRITE);
-    } else {
-      console.log("FAILED TO CLEAR");
+  public clearTile(coordinate: TileCoordinate) {
+    if (this.isTileOccupied(coordinate.X, coordinate.Y)) {
+      this._get(coordinate.X, coordinate.Y).destroy();
+      this.putBubbleSpriteByTile(coordinate.X, coordinate.Y, EMPTY_BUBBLE_SPRITE);
     }
   }
 
@@ -100,5 +98,21 @@ export class Board {
       clone.push(row);
     }
     return clone;
+  }
+
+  private calculateLowestVerticalDropPoint(c: TileCoordinate) {
+    for (let y = this.getMaxY() - 1; y > c.Y; y--) {
+      if (!this.isTileOccupied(c.X, y)) {
+        return y;
+      }
+    }
+    return c.Y;
+  }
+  
+  public calculateLowestVerticalDropPointForPair(c1: TileCoordinate, c2: TileCoordinate): BubbleTileCoordinatePair {
+    let yMax = Math.min(this.calculateLowestVerticalDropPoint(c1), this.calculateLowestVerticalDropPoint(c2));
+    let y1 = (c1.X === c2.X && c1.Y < c2.Y) ? yMax - 1 : yMax;
+    let y2 = (c1.X === c2.X && c1.Y > c2.Y) ? yMax - 1 : yMax;
+    return { bubble1Coordinate: { X: c1.X, Y: y1 }, bubble2Coordinate: { X: c2.X, Y: y2 } };
   }
 }

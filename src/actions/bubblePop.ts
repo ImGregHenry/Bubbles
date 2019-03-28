@@ -17,7 +17,7 @@ export class BubblePopper {
     let explosions: BubbleExplosionDetails[] = this.findBubblePopPixelPairs(board);
     explosions.forEach(function(e) {
       e.coordinates.forEach(function(c) {
-        board.clearTile(c.X, c.Y);
+        board.clearTile(c);
       }, this);
     }, this);
 

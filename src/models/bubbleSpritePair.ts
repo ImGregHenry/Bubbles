@@ -20,6 +20,14 @@ export class BubbleSpritePair {
     this.createActiveBubblePair();
   }
 
+  public getBubble1(): BubbleSprite {
+    return this.bubble1;
+  }
+
+  public getBubble2(): BubbleSprite {
+    return this.bubble2;
+  }
+
   createActiveBubblePair(): void {
     this.bubble1 = new BubbleSprite(this.mainScene, BUBBLE_1_STARTING_TILE_COORDINATE);
     this.bubble2 = new BubbleSprite(this.mainScene, BUBBLE_2_STARTING_TILE_COORDINATE);
@@ -39,13 +47,18 @@ export class BubbleSpritePair {
   }
 
   moveActiveBubble(tileVector: TileVector): void {
-    if (this.boardTracker.getBoard().isTileValidAndNotOccupiedAfterTileVector(this.bubble1.getTileCoordinate(), tileVector)
+    if (tileVector === TileVectors.DROP_VECTOR) {
+      this.boardTracker.startForcedSpaceDrop(this);
+      this.stopBubbles();
+      this.mainScene.bubbleDropPopLoop();
+      return;
+    } else if (this.boardTracker.getBoard().isTileValidAndNotOccupiedAfterTileVector(this.bubble1.getTileCoordinate(), tileVector)
         && this.boardTracker.getBoard().isTileValidAndNotOccupiedAfterTileVector(this.bubble2.getTileCoordinate(), tileVector)) {
       this.bubble1.moveTileByTileVector(tileVector);
       this.bubble2.moveTileByTileVector(tileVector);
     } else if (tileVector === TileVectors.DOWN_VECTOR) {
       this.stopBubbles();
-      this.mainScene.startBubbleDropPopLoop();
+      this.mainScene.bubbleDropPopLoop();
     }
   }
   

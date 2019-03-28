@@ -1,6 +1,8 @@
-import { TileCoordinate } from './utils/mapUtils';
-import { Board, EMPTY_BUBBLE_SPRITE } from './models/board';
-import { BubbleSprite } from './models/bubbleSprite';
+import { TileCoordinate } from "./utils/mapUtils";
+import { Board, EMPTY_BUBBLE_SPRITE } from "./models/board";
+import { BubbleSprite } from "./models/bubbleSprite";
+import { BubbleSpritePair } from "./models/bubbleSpritePair";
+import { BubbleTileCoordinatePair } from "./utils/bubbleUtils";
 
 export interface BubbleDropVector {
   start: TileCoordinate,
@@ -50,9 +52,7 @@ export class BoardTracker {
 
   public updateTileLocationsAfterDrops(dropVectors: BubbleDropVector[]): void {
     dropVectors.forEach(vector => {
-      // this.board[vector.end.Y][vector.end.X] = this.board[vector.start.Y][vector.start.X];
       this.board.put(vector.end, this.board.get(vector.start));
-      //TODO: find a better representation for null
       this.board.put(vector.start, EMPTY_BUBBLE_SPRITE);
     });
   }
@@ -61,5 +61,26 @@ export class BoardTracker {
     if (this.board.isValidTileBoundary(coordinate.X, coordinate.Y)) {
       this.board.put(coordinate, sprite);
     }
+  }
+
+  public startForcedSpaceDrop(bubblePair: BubbleSpritePair): void {
+    let bubble1: BubbleSprite = bubblePair.getBubble1();
+    let bubble2: BubbleSprite = bubblePair.getBubble2();
+
+    let updatedBubbleTileCoordinates: BubbleTileCoordinatePair = this.board.calculateLowestVerticalDropPointForPair(bubble1.getTileCoordinate(), bubble2.getTileCoordinate());
+    let bubble1EndTileCoordinate: TileCoordinate = updatedBubbleTileCoordinates.bubble1Coordinate;
+    let bubble2EndTileCoordinate: TileCoordinate = updatedBubbleTileCoordinates.bubble2Coordinate;
+    let dropVectors: BubbleDropVector[] = [
+      { start: bubble1.getTileCoordinate(), end: bubble1EndTileCoordinate },
+      { start: bubble2.getTileCoordinate(), end: bubble2EndTileCoordinate }
+    ];
+    
+    this.board.clearTile(bubble1.getTileCoordinate());
+    this.board.clearTile(bubble2.getTileCoordinate());
+    
+    bubblePair.getBubble1().setTilePosition(bubble1EndTileCoordinate);
+    bubblePair.getBubble2().setTilePosition(bubble2EndTileCoordinate);
+
+    this.updateTileLocationsAfterDrops(dropVectors);
   }
 }
