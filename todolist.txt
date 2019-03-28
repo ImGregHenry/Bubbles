@@ -1,0 +1,19 @@
+Features:
+// Space bar to drop
+// Score tracking
+// Improve asset quality
+// Include explosion animation
+// Sound effects
+// High scores
+
+
+Fixes:
+// Rotation should be on the individual axis
+// Rotation should be enabled when rotating into a wall
+// Added delay after each bubble drop
+
+Code:
+// Abstract away pixel from tile.
+// DropVectors should be an actual vector instead of start/stop
+// Event driven drop sequence.
+// Create vector incrementor

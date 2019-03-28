@@ -1,5 +1,5 @@
-import { MainScene } from './scenes/mainScene';
-import { TileUtils } from './utils/tileUtils';
+import { MainScene } from "./scenes/mainScene";
+import { TileVectors } from "./models/tileVectors";
 import CursorKeys = Phaser.Input.Keyboard.CursorKeys;
 import KeyCodes = Phaser.Input.Keyboard.KeyCodes;
 import TimerEvent = Phaser.Time.TimerEvent;
@@ -37,19 +37,25 @@ export class KeyboardControls {
   }
   
   startDownwardMovement(downwardCallback: Function): void {
-    this.downwardMovementTimer = this.context.time.addEvent({loop: true, delay: BUBBLE_DROP_SPEED, callback: downwardCallback, callbackScope: this.context, args: [TileUtils.MOVE_DOWN_VECTOR]});
+    this.downwardMovementTimer = this.context.time.addEvent({loop: true, delay: BUBBLE_DROP_SPEED, callback: downwardCallback, callbackScope: this.context, args: [TileVectors.DOWN_VECTOR]});
   }
 
   bindMovementKeys(keyPressCallback: Function): void {
-    // Left key
-    let leftKey = this.context.input.keyboard.addKey(KeyCodes.LEFT);
-    leftKey.on('down', function() {
-      //TODO: consider using startAt instead of calling directly at start.
-      keyPressCallback.apply(this.context, [TileUtils.MOVE_LEFT_VECTOR]);
-      this.leftKeyRepeatTimer = this.context.time.addEvent({loop: true,delay: BUTTON_HOLD_DEBOUNCE_DELAY, callback: keyPressCallback, callbackScope: this.context, args: [TileUtils.MOVE_LEFT_VECTOR]});
+    // Space key (drop)
+    let spacebarKey = this.context.input.keyboard.addKey(KeyCodes.SPACE);
+    spacebarKey.on("down", function() {
+      keyPressCallback.apply(this.context, [TileVectors.DROP_VECTOR]);
     }, this);
 
-    leftKey.on('up', function() {
+    // Left key
+    let leftKey = this.context.input.keyboard.addKey(KeyCodes.LEFT);
+    leftKey.on("down", function() {
+      //TODO: consider using startAt instead of calling directly at start.
+      keyPressCallback.apply(this.context, [TileVectors.LEFT_VECTOR]);
+      this.leftKeyRepeatTimer = this.context.time.addEvent({loop: true, delay: BUTTON_HOLD_DEBOUNCE_DELAY, callback: keyPressCallback, callbackScope: this.context, args: [TileVectors.LEFT_VECTOR]});
+    }, this);
+
+    leftKey.on("up", function() {
       if (this.leftKeyRepeatTimer) {
         this.leftKeyRepeatTimer.destroy();
       }
@@ -57,12 +63,12 @@ export class KeyboardControls {
 
     // Right key
     let rightKey = this.context.input.keyboard.addKey(KeyCodes.RIGHT);
-    rightKey.on('down', function() {
-      keyPressCallback.apply(this.context, [TileUtils.MOVE_RIGHT_VECTOR]);
-      this.rightKeyRepeatTimer = this.context.time.addEvent({loop: true, delay: BUTTON_HOLD_DEBOUNCE_DELAY, callback: keyPressCallback, callbackScope: this.context, args: [TileUtils.MOVE_RIGHT_VECTOR]});
+    rightKey.on("down", function() {
+      keyPressCallback.apply(this.context, [TileVectors.RIGHT_VECTOR]);
+      this.rightKeyRepeatTimer = this.context.time.addEvent({loop: true, delay: BUTTON_HOLD_DEBOUNCE_DELAY, callback: keyPressCallback, callbackScope: this.context, args: [TileVectors.RIGHT_VECTOR]});
     }, this);
 
-    rightKey.on('up', function() {
+    rightKey.on("up", function() {
       if (this.rightKeyRepeatTimer) {
         this.rightKeyRepeatTimer.destroy();
       }
@@ -70,12 +76,12 @@ export class KeyboardControls {
 
     // Down key
     let downKey = this.context.input.keyboard.addKey(KeyCodes.DOWN);
-    downKey.on('down', function() {
-      keyPressCallback.apply(this.context, [TileUtils.MOVE_DOWN_VECTOR]);
-      this.downKeyRepeatTimer = this.context.time.addEvent({loop: true, delay: BUTTON_HOLD_DEBOUNCE_DELAY, callback: keyPressCallback, callbackScope: this.context, args: [TileUtils.MOVE_DOWN_VECTOR]});
+    downKey.on("down", function() {
+      keyPressCallback.apply(this.context, [TileVectors.DOWN_VECTOR]);
+      this.downKeyRepeatTimer = this.context.time.addEvent({loop: true, delay: BUTTON_HOLD_DEBOUNCE_DELAY, callback: keyPressCallback, callbackScope: this.context, args: [TileVectors.DOWN_VECTOR]});
     }, this);
 
-    downKey.on('up', function() {
+    downKey.on("up", function() {
       if (this.downKeyRepeatTimer) {
         this.downKeyRepeatTimer.destroy();
       }
@@ -84,12 +90,12 @@ export class KeyboardControls {
 
   bindRotateKeys(rotationKeyCallback: Function): void {
     let leftRotate = this.context.input.keyboard.addKey(KeyCodes.A);
-    leftRotate.on('down', function() {
+    leftRotate.on("down", function() {
       rotationKeyCallback.apply(this.context, [RotationDirection.COUNTER_CLOCKWISE]);
     }, this);
 
     let rightRotate = this.context.input.keyboard.addKey(KeyCodes.S);
-    rightRotate.on('down', function() {
+    rightRotate.on("down", function() {
       rotationKeyCallback.apply(this.context, [RotationDirection.CLOCKWISE]);
     }, this);
   }

@@ -1,18 +1,21 @@
-import { Coordinate, MapUtils, TILE_HEIGHT, TILE_WIDTH } from './mapUtils';
-import { RotationDirection } from '../KeyboardControls';
-import { BoardTracker } from '../boardTracker';
+import { TileCoordinate } from "./mapUtils";
+import { RotationDirection } from "../keyboardControls";
+import { Board } from "../models/board";
 
-export const MINIMUM_BUBBLE_POP_PAIRING_SIZE = 4;
 const TOTAL_BUBBLE_COLORS = 6;
 export const DATA_KEY_COLOR_NAME = "COLOR-NAME";
+export const ONE_TILE = 1;
+
+export const BUBBLE_1_STARTING_TILE_COORDINATE: TileCoordinate = { X: 4, Y: 0 };
+export const BUBBLE_2_STARTING_TILE_COORDINATE: TileCoordinate = { X: 4, Y: 1 };
 
 export const BubbleColor = {
-  RED: { value: 1, imageName: 'tile-bubble-red' },
-  BLUE: { value: 2, imageName: 'tile-bubble-blue' },
-  PURPLE: { value: 3, imageName: 'tile-bubble-purple' },
-  YELLOW: { value: 4, imageName: 'tile-bubble-yellow' },
-  GREEN: { value: 5, imageName: 'tile-bubble-green' },
-  ORANGE: { value: 6, imageName: 'tile-bubble-orange' },
+  RED: { value: 1, imageName: "tile-bubble-red" },
+  BLUE: { value: 2, imageName: "tile-bubble-blue" },
+  PURPLE: { value: 3, imageName: "tile-bubble-purple" },
+  YELLOW: { value: 4, imageName: "tile-bubble-yellow" },
+  GREEN: { value: 5, imageName: "tile-bubble-green" },
+  ORANGE: { value: 6, imageName: "tile-bubble-orange" },
 };
 
 export enum BubbleOrientation {
@@ -22,14 +25,9 @@ export enum BubbleOrientation {
   HORIZONTAL_1_RIGHT
 }
 
-export interface BubbleCoordinatePair {
-  bubble1Coordinate: Coordinate;
-  bubble2Coordinate: Coordinate;
-}
-
-export interface BubbleExplosionDetails {
-  coordinates: Coordinate[],
-  color: number
+export interface BubbleTileCoordinatePair {
+  bubble1Coordinate: TileCoordinate;
+  bubble2Coordinate: TileCoordinate;
 }
 
 export class BubbleUtils {
@@ -84,19 +82,19 @@ export class BubbleUtils {
   // 2. Check valid coordinates
   // 3. If valid, return.  If not valid, calculate new coordinate.
   // 4.  Check new coordinate.  If invalid, return original coordinate.
-  public static getCoordinatePairAfterRotation(bubble1StartCoordinate: Coordinate, bubble2StartCoordinate: Coordinate, currentOrientation: BubbleOrientation,
-                                                rotationDirection: RotationDirection, boardTracker: BoardTracker): BubbleCoordinatePair {
+  public static getCoordinatePairAfterRotation(bubble1StartCoordinate: TileCoordinate, bubble2StartCoordinate: TileCoordinate, currentOrientation: BubbleOrientation,
+                                                rotationDirection: RotationDirection, board: Board): BubbleTileCoordinatePair {
     let newOrientation: BubbleOrientation = BubbleUtils.changeOrientationByRotation(currentOrientation, rotationDirection);
-    let bubble2CoordinatePostRotation: Coordinate = this.getBubbleTwoCoordinateAfterRotation(bubble1StartCoordinate, newOrientation);
+    let bubble2CoordinatePostRotation: TileCoordinate = this.getBubbleTwoCoordinateAfterRotation(bubble1StartCoordinate, newOrientation);
 
-    if (this.isValidBubbleCoordinatePair({bubble1Coordinate: bubble1StartCoordinate, bubble2Coordinate: bubble2CoordinatePostRotation}, boardTracker)) {
+    if (this.isValidBubbleCoordinatePair({bubble1Coordinate: bubble1StartCoordinate, bubble2Coordinate: bubble2CoordinatePostRotation}, board)) {
       return { bubble1Coordinate: bubble1StartCoordinate, bubble2Coordinate: bubble2CoordinatePostRotation };
     }
 
-    let bubble1CoordinatePostAdjustment: Coordinate = this.getBubble1CoordinateAfterInvalidRotation(bubble1StartCoordinate, currentOrientation, rotationDirection);
-    let bubble2CoordinatePostAdjustment: Coordinate = this.getBubbleTwoCoordinateAfterRotation(bubble1CoordinatePostAdjustment, newOrientation);
+    let bubble1CoordinatePostAdjustment: TileCoordinate = this.getBubble1CoordinateAfterInvalidRotation(bubble1StartCoordinate, currentOrientation, rotationDirection);
+    let bubble2CoordinatePostAdjustment: TileCoordinate = this.getBubbleTwoCoordinateAfterRotation(bubble1CoordinatePostAdjustment, newOrientation);
 
-    if (this.isValidBubbleCoordinatePair({bubble1Coordinate: bubble1StartCoordinate, bubble2Coordinate: bubble2CoordinatePostRotation}, boardTracker)) {
+    if (this.isValidBubbleCoordinatePair({bubble1Coordinate: bubble1StartCoordinate, bubble2Coordinate: bubble2CoordinatePostRotation}, board)) {
       return { bubble1Coordinate: bubble1CoordinatePostAdjustment, bubble2Coordinate: bubble2CoordinatePostAdjustment };
     }
 
@@ -104,50 +102,48 @@ export class BubbleUtils {
     return null;
   }
 
-  private static isValidBubbleCoordinatePair(bubblePair: BubbleCoordinatePair, boardTracker: BoardTracker): boolean {
-    return MapUtils.isValidCoordinateBoundary(bubblePair.bubble1Coordinate) && MapUtils.isValidCoordinateBoundary(bubblePair.bubble2Coordinate)
-      && !boardTracker.isTileOccupiedByPixelCoordinate(bubblePair.bubble1Coordinate) && !boardTracker.isTileOccupiedByPixelCoordinate(bubblePair.bubble2Coordinate);
+  private static isValidBubbleCoordinatePair(bubblePair: BubbleTileCoordinatePair, board: Board): boolean {
+    return board.isTileValidAndNotOccupied(bubblePair.bubble1Coordinate) && board.isTileValidAndNotOccupied(bubblePair.bubble2Coordinate);
   }
 
-  public static getBubble1CoordinateAfterInvalidRotation(coordinate: Coordinate, orientation: BubbleOrientation, rotation: RotationDirection): Coordinate {
+  public static getBubble1CoordinateAfterInvalidRotation(coordinate: TileCoordinate, orientation: BubbleOrientation, rotation: RotationDirection): TileCoordinate {
     if ((orientation === BubbleOrientation.VERTICAL_1_BOTTOM && rotation === RotationDirection.COUNTER_CLOCKWISE )
         || (orientation === BubbleOrientation.VERTICAL_1_TOP && rotation === RotationDirection.CLOCKWISE)) {
-        return {X: coordinate.X + TILE_WIDTH, Y: coordinate.Y};
+        return {X: coordinate.X + ONE_TILE, Y: coordinate.Y};
     }
     if ((orientation === BubbleOrientation.VERTICAL_1_BOTTOM && rotation === RotationDirection.CLOCKWISE)
       || (orientation === BubbleOrientation.VERTICAL_1_TOP && rotation === RotationDirection.COUNTER_CLOCKWISE)) {
-      return {X: coordinate.X - TILE_WIDTH, Y: coordinate.Y};
+      return {X: coordinate.X - ONE_TILE, Y: coordinate.Y};
     }
     if ((orientation === BubbleOrientation.HORIZONTAL_1_LEFT && rotation === RotationDirection.CLOCKWISE)
       || (orientation === BubbleOrientation.HORIZONTAL_1_RIGHT && rotation === RotationDirection.COUNTER_CLOCKWISE)) {
-      return {X: coordinate.X, Y: coordinate.Y - TILE_HEIGHT};
+      return {X: coordinate.X, Y: coordinate.Y - ONE_TILE};
     }
-    //TODO: Do I actually ever need to use this case? Previously, didn't because other board pieces weren't accounted for.
+    //TODO: Do I actually ever need to use this case? Previously, didn"t because other board pieces weren"t accounted for.
     if ((orientation === BubbleOrientation.HORIZONTAL_1_LEFT && rotation === RotationDirection.COUNTER_CLOCKWISE)
       || (orientation === BubbleOrientation.HORIZONTAL_1_RIGHT && rotation === RotationDirection.CLOCKWISE)) {
-      return {X: coordinate.X, Y: coordinate.Y + TILE_HEIGHT};
+      return {X: coordinate.X, Y: coordinate.Y + ONE_TILE};
     }
     return coordinate;
   }
 
-  public static getBubbleTwoCoordinateAfterRotation(bubble1Coordinate: Coordinate, newOrientation: BubbleOrientation ): Coordinate {
+  public static getBubbleTwoCoordinateAfterRotation(bubble1Coordinate: TileCoordinate, newOrientation: BubbleOrientation ): TileCoordinate {
     let coordinate = { X: bubble1Coordinate.X, Y: bubble1Coordinate.Y };
     switch(newOrientation) {
       case BubbleOrientation.VERTICAL_1_TOP:
-        coordinate.Y += TILE_HEIGHT;
+        coordinate.Y += ONE_TILE;
         break;
       case BubbleOrientation.VERTICAL_1_BOTTOM:
-        coordinate.Y -= TILE_HEIGHT;
+        coordinate.Y -= ONE_TILE;
         break;
       case BubbleOrientation.HORIZONTAL_1_LEFT:
-        coordinate.X += TILE_WIDTH;
+        coordinate.X += ONE_TILE;
         break;
       case BubbleOrientation.HORIZONTAL_1_RIGHT:
-        coordinate.X -= TILE_WIDTH;
+        coordinate.X -= ONE_TILE;
         break;
       default:
         throw "Invalid orientation.";
-        break;
     }
 
     return coordinate;

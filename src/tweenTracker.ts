@@ -1,47 +1,49 @@
 import { BubbleDropVector, BoardTracker } from "./boardTracker";
 import { MainScene } from "./scenes/mainScene";
-  import Sprite = Phaser.Physics.Arcade.Sprite;
-import { MapUtils, Coordinate, TILE_WIDTH, TILE_HEIGHT } from "./utils/mapUtils";
+import { MapUtils, TILE_WIDTH, TILE_HEIGHT, PixelCoordinate } from "./utils/mapUtils";
+import { BubbleSprite } from "./models/bubbleSprite";
+import { Board } from "./models/board";
 
-const TWEEN_MS_TIME_PER_TILE = 100;
+const TWEEN_TIME_PER_TILE_MS = 120;
+const DELAY_AFTER_TWEEN_MS = 500;
 
 export class TweenTracker {
-  private boardTracker: BoardTracker;
+  private board: Board;
   private context: MainScene;
 
-  constructor(context: MainScene, boardTracker: BoardTracker) {
+  constructor(context: MainScene, board: Board) {
     this.context = context;
-    this.boardTracker = boardTracker;
+    this.board = board;
   }
 
   startTweens(dropVectors: BubbleDropVector[], callback: Function): void {
     let longestDropIndex: number = this.getLongestTweenVectorIndex(dropVectors);
     for(let i = 0; i < dropVectors.length; i++) {
-      let bubbleSprite: Sprite = this.boardTracker.getBubbleSpriteFromBoard(dropVectors[i].start.X, dropVectors[i].start.Y);
+      let bubbleSprite: BubbleSprite = this.board.get(dropVectors[i].start);
       
-      let pixelCoordinate: Coordinate = MapUtils.convertTileIndexToWorldMapCoordinate(dropVectors[i].end.X, dropVectors[i].end.Y);
-
+      //TODO: drop vectors should be proper vectors instead of start/end coordinates.
+      let pixelCoordinate: PixelCoordinate = MapUtils.convertTileCoordinateToWorldMapPixelCoordinate(dropVectors[i].end);
       this.context.tweens.add({
-        targets: bubbleSprite,
-        x: pixelCoordinate.X + TILE_WIDTH/2,
-        y: pixelCoordinate.Y + TILE_HEIGHT/2,
-        ease: 'Linear',
+        targets: bubbleSprite.getSprite(),
+        x: pixelCoordinate.X,
+        y: pixelCoordinate.Y,
+        ease: "Linear",
         duration: this.calculateTweenDurationInMs(dropVectors[i].end.Y - dropVectors[i].start.Y),
-        repeat: 0,
-        yoyo: false,
-        onComplete: i == longestDropIndex ? this.handleOnCompleteCallback : null,
+        onComplete: i == longestDropIndex ? this.handleTweenOnCompleteCallback : null,
         onCompleteParams: [callback, this.context, dropVectors],
         onCompleteScope: this.context
       });
     };
   }
 
-  handleOnCompleteCallback(tween: any, sprite: any, callback: Function, context: MainScene, dropVectors: BubbleDropVector[]) {
+  handleTweenOnCompleteCallback(tween: any, sprite: any, callback: Function, context: MainScene, dropVectors: BubbleDropVector[]) {
+    //TODO: add a delay here for the callback.
+    // context.time.delayedCall(DELAY_AFTER_TWEEN_MS, callback, [dropVectors], context);
     callback.apply(context, [dropVectors]);
   }
 
   calculateTweenDurationInMs(tileCount: number): number {
-    return TWEEN_MS_TIME_PER_TILE * tileCount;
+    return TWEEN_TIME_PER_TILE_MS * tileCount;
   }
 
   getLongestTweenVectorIndex(dropVectors: BubbleDropVector[]): number {

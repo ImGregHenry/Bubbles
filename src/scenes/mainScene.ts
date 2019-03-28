@@ -1,14 +1,13 @@
-import {
-  MapUtils, Coordinate,
-} from '../utils/mapUtils';
-import { KeyboardControls, RotationDirection } from '../keyboardControls';
-import {
-  BubbleColor,
-} from '../utils/bubbleUtils';
+import { MapUtils } from "../utils/mapUtils";
+import { KeyboardControls, RotationDirection } from "../keyboardControls";
+import { BubbleColor } from "../utils/bubbleUtils";
 import StaticTilemapLayer = Phaser.Tilemaps.StaticTilemapLayer;
-import { BoardTracker, BubbleDropVector } from '../boardTracker';
-import { TweenTracker } from '../tweenTracker';
-import { BubbleSpritePair } from '../models/bubbleSpritePair';
+import { BoardTracker, BubbleDropVector } from "../boardTracker";
+import { TweenTracker } from "../tweenTracker";
+import { BubbleSpritePair } from "../models/bubbleSpritePair";
+import { BubblePopper } from "../actions/bubblePop";
+import { TileVector } from "../models/tileVectors";
+import { logMessageAndVariable } from "../utils/debugUtils";
 
 
 export class MainScene extends Phaser.Scene {
@@ -36,10 +35,10 @@ export class MainScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.boardTracker = new BoardTracker(this);
-    this.tweenTracker = new TweenTracker(this, this.boardTracker);
+    this.boardTracker = new BoardTracker();
+    this.tweenTracker = new TweenTracker(this, this.boardTracker.getBoard());
 
-    const boardJson = MapUtils.generateMap();
+    const boardJson = MapUtils.generateBackgroundMap();
 
     const map = this.make.tilemap({ data: boardJson, tileWidth: 40, tileHeight: 40 });
     const tiles = map.addTilesetImage("tile-sheet", "tile-sheet", 40, 40);
@@ -57,7 +56,7 @@ export class MainScene extends Phaser.Scene {
   update(): void {
   }
 
-  moveActiveBubble(vector: Coordinate): void {
+  moveActiveBubble(vector: TileVector): void {
     if (this.getIsPaused()) {
       return;
     }
@@ -89,7 +88,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   popBubbles(): void {
-    let isBubblePopped: boolean = this.boardTracker.popBubbles();
+    let isBubblePopped: boolean = BubblePopper.popBubbles(this.boardTracker.getBoard());
       if (isBubblePopped) {
         this.startBubbleDropPopLoop();
       } else {
