@@ -9,6 +9,8 @@ export const ONE_TILE = 1;
 export const BUBBLE_1_STARTING_TILE_COORDINATE: TileCoordinate = { X: 4, Y: 0 };
 export const BUBBLE_2_STARTING_TILE_COORDINATE: TileCoordinate = { X: 4, Y: 1 };
 
+export const BUBBLE_HIDDEN_SPAWN_TILE_COORDINATE: TileCoordinate = { X: -1, Y: -1 };
+
 export const BubbleColor = {
   RED: { value: 1, imageName: "tile-bubble-red" },
   BLUE: { value: 2, imageName: "tile-bubble-blue" },

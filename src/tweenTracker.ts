@@ -10,13 +10,16 @@ const DELAY_AFTER_TWEEN_MS = 500;
 export class TweenTracker {
   private board: Board;
   private context: MainScene;
+  private dropTweenInProgress: boolean;
 
   constructor(context: MainScene, board: Board) {
     this.context = context;
     this.board = board;
   }
 
-  startTweens(dropVectors: BubbleDropVector[], callback: Function): void {
+  public startTweens(dropVectors: BubbleDropVector[], callback: Function): void {
+    this.dropTweenInProgress = true;
+
     let longestDropIndex: number = this.getLongestTweenVectorIndex(dropVectors);
     for(let i = 0; i < dropVectors.length; i++) {
       let bubbleSprite: BubbleSprite = this.board.get(dropVectors[i].start);
@@ -36,17 +39,21 @@ export class TweenTracker {
     };
   }
 
-  handleTweenOnCompleteCallback(tween: any, sprite: any, callback: Function, context: MainScene, dropVectors: BubbleDropVector[]) {
+  public isDropTweenInProgress(): boolean {
+    return this.dropTweenInProgress;
+  }
+
+  private handleTweenOnCompleteCallback(tween: any, sprite: any, callback: Function, context: MainScene, dropVectors: BubbleDropVector[]) {
     //TODO: add a delay here for the callback.
     // context.time.delayedCall(DELAY_AFTER_TWEEN_MS, callback, [dropVectors], context);
     callback.apply(context, [dropVectors]);
   }
 
-  calculateTweenDurationInMs(tileCount: number): number {
+  private calculateTweenDurationInMs(tileCount: number): number {
     return TWEEN_TIME_PER_TILE_MS * tileCount;
   }
 
-  getLongestTweenVectorIndex(dropVectors: BubbleDropVector[]): number {
+  private getLongestTweenVectorIndex(dropVectors: BubbleDropVector[]): number {
     let max: number = dropVectors[0].start.Y - dropVectors[0].end.Y;
     let index: number = 0;
     for(let i = 1; i < dropVectors.length; i++) {

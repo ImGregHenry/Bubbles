@@ -10,7 +10,7 @@ export interface BubbleExplosionDetails {
 const MINIMUM_BUBBLE_POP_PAIRING_SIZE = 4;
 const VISITED_TILE = 9;
 
-// Class is responsible for parsing a board and detecting
+// Class is responsible for parsing a board and detecting 4+ pairs of bubbles and popping them.
 export class BubblePopper {
 
   public static popBubbles(board: Board): boolean {

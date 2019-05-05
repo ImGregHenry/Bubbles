@@ -8,16 +8,17 @@ import { BubbleSpritePair } from "../models/bubbleSpritePair";
 import { BubblePopper } from "../actions/bubblePop";
 import { TileVector } from "../models/tileVectors";
 import { logMessageAndVariable } from "../utils/debugUtils";
+import { BubbleSpawnManager } from "../bubbleSpawnManager";
 
 
 export class MainScene extends Phaser.Scene {
   private keyboardControls: KeyboardControls;
   private boardTracker: BoardTracker;
   private tweenTracker: TweenTracker;
+  private bubbleSpawnManager: BubbleSpawnManager;
   private staticTileMapLayer: StaticTilemapLayer;
   private isPaused: boolean = false;
-  private activeBubblePair: BubbleSpritePair;
-
+  
   constructor() {
     super({key: "MainScene"});
   }
@@ -35,9 +36,6 @@ export class MainScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.boardTracker = new BoardTracker();
-    this.tweenTracker = new TweenTracker(this, this.boardTracker.getBoard());
-
     const boardJson = MapUtils.generateBackgroundMap();
 
     const map = this.make.tilemap({ data: boardJson, tileWidth: 40, tileHeight: 40 });
@@ -45,29 +43,34 @@ export class MainScene extends Phaser.Scene {
 
     this.staticTileMapLayer = map.createStaticLayer(0, tiles, 0, 0);
 
-    this.activeBubblePair = new BubbleSpritePair(this, this.boardTracker);
-
     this.keyboardControls =  new KeyboardControls(this);
     this.keyboardControls.bindMovementKeys(this.moveActiveBubble);
     this.keyboardControls.bindRotateKeys(this.rotateActiveBubble);
     this.keyboardControls.startDownwardMovement(this.moveActiveBubble);
+
+    this.bubbleSpawnManager = new BubbleSpawnManager(this);
+    this.boardTracker = new BoardTracker(this, this.bubbleSpawnManager);
+    this.tweenTracker = new TweenTracker(this, this.boardTracker.getBoard());
   }
 
   update(): void {
+    if (!this.bubbleSpawnManager.isBubbleActive() && !this.tweenTracker.isDropTweenInProgress()) {
+      this.bubbleSpawnManager.spawnNewBubble();
+    }
   }
 
   moveActiveBubble(vector: TileVector): void {
     if (this.getIsPaused()) {
       return;
     }
-    this.activeBubblePair.moveActiveBubble(vector);
+    this.boardTracker.moveActiveBubble(vector);
   }
   
   rotateActiveBubble(rotationDirection: RotationDirection): void {
     if (this.getIsPaused()) {
       return;
     }
-    this.activeBubblePair.rotateActiveBubble(rotationDirection);
+    this.boardTracker.rotateActiveBubble(rotationDirection);
   }
 
   bubbleDropPopLoop(): void {
@@ -80,7 +83,6 @@ export class MainScene extends Phaser.Scene {
     } else {
       this.popBubbles();
     }
-  
   }
 
   tweenDropComplete(dropVectors: BubbleDropVector[]): void {
@@ -93,7 +95,8 @@ export class MainScene extends Phaser.Scene {
       if (isBubblePopped) {
         this.bubbleDropPopLoop();
       } else {
-        this.activeBubblePair = new BubbleSpritePair(this, this.boardTracker);
+        this.boardTracker.spawnActiveBubblePair();
+
         //TODO: re-enable movement. 
         this.setPaused(false);
       }

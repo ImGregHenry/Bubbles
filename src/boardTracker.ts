@@ -2,7 +2,11 @@ import { TileCoordinate } from "./utils/mapUtils";
 import { Board, EMPTY_BUBBLE_SPRITE } from "./models/board";
 import { BubbleSprite } from "./models/bubbleSprite";
 import { BubbleSpritePair } from "./models/bubbleSpritePair";
-import { BubbleTileCoordinatePair } from "./utils/bubbleUtils";
+import { BubbleTileCoordinatePair, BubbleUtils, BubbleOrientation } from "./utils/bubbleUtils";
+import { BubbleSpawnManager } from "./bubbleSpawnManager";
+import { TileVector, TileVectors } from "./models/tileVectors";
+import { RotationDirection } from "./keyboardControls";
+import { MainScene } from "./scenes/mainScene";
 
 export interface BubbleDropVector {
   start: TileCoordinate,
@@ -12,9 +16,13 @@ export interface BubbleDropVector {
 
 export class BoardTracker {
   private board: Board;
+  private bubbleSpawnManager: BubbleSpawnManager;
+  private context: MainScene;
 
-  constructor() {
+  constructor(context: MainScene, bubbleSpawnManager: BubbleSpawnManager) {
+    this.context = context;
     this.board = new Board();
+    this.bubbleSpawnManager = bubbleSpawnManager;
   }
 
   public getBoard(): Board {
@@ -46,6 +54,7 @@ export class BoardTracker {
   }
 
   private createDropVector(startX: number, startY: number, endX: number, endY: number): BubbleDropVector {
+    //TODO: create a class for drop vector and enhance with actual vectors.
     let dropVector: BubbleDropVector = { start: { X: startX, Y: startY }, end: { X: endX, Y: endY } };
     return dropVector;
   }
@@ -57,20 +66,21 @@ export class BoardTracker {
     });
   }
 
-  public putBubbleSpriteByTile(coordinate: TileCoordinate, sprite: BubbleSprite): void {
+  public putBubbleSpriteByTile(sprite: BubbleSprite): void {
+    const coordinate: TileCoordinate = sprite.getTileCoordinate();
     if (this.board.isValidTileBoundary(coordinate.X, coordinate.Y)) {
       this.board.put(coordinate, sprite);
     }
   }
 
-  public startForcedSpaceDrop(bubblePair: BubbleSpritePair): void {
-    let bubble1: BubbleSprite = bubblePair.getBubble1();
-    let bubble2: BubbleSprite = bubblePair.getBubble2();
+  public startForcedSpaceBarDrop(): void {
+    const bubble1: BubbleSprite = this.bubbleSpawnManager.getActiveBubblePair().getBubble1();
+    const bubble2: BubbleSprite = this.bubbleSpawnManager.getActiveBubblePair().getBubble2();
 
-    let updatedBubbleTileCoordinates: BubbleTileCoordinatePair = this.board.calculateLowestVerticalDropPointForPair(bubble1.getTileCoordinate(), bubble2.getTileCoordinate());
-    let bubble1EndTileCoordinate: TileCoordinate = updatedBubbleTileCoordinates.bubble1Coordinate;
-    let bubble2EndTileCoordinate: TileCoordinate = updatedBubbleTileCoordinates.bubble2Coordinate;
-    let dropVectors: BubbleDropVector[] = [
+    const updatedBubbleTileCoordinates: BubbleTileCoordinatePair = this.board.calculateLowestVerticalDropPointForPair(bubble1.getTileCoordinate(), bubble2.getTileCoordinate());
+    const bubble1EndTileCoordinate: TileCoordinate = updatedBubbleTileCoordinates.bubble1Coordinate;
+    const bubble2EndTileCoordinate: TileCoordinate = updatedBubbleTileCoordinates.bubble2Coordinate;
+    const dropVectors: BubbleDropVector[] = [
       { start: bubble1.getTileCoordinate(), end: bubble1EndTileCoordinate },
       { start: bubble2.getTileCoordinate(), end: bubble2EndTileCoordinate }
     ];
@@ -78,9 +88,55 @@ export class BoardTracker {
     this.board.clearTile(bubble1.getTileCoordinate());
     this.board.clearTile(bubble2.getTileCoordinate());
     
-    bubblePair.getBubble1().setTilePosition(bubble1EndTileCoordinate);
-    bubblePair.getBubble2().setTilePosition(bubble2EndTileCoordinate);
+    bubble1.setTilePosition(bubble1EndTileCoordinate);
+    bubble2.setTilePosition(bubble2EndTileCoordinate);
 
     this.updateTileLocationsAfterDrops(dropVectors);
+  }
+
+  public spawnActiveBubblePair(): void {
+    //TODO: this should probably be event driven instead
+    const bubblePair: BubbleSpritePair = this.bubbleSpawnManager.spawnNewBubble();
+  }
+
+  public rotateActiveBubble(rotationDirection: RotationDirection): void {
+    const bubble1: BubbleSprite = this.bubbleSpawnManager.getActiveBubble1();
+    const bubble2: BubbleSprite = this.bubbleSpawnManager.getActiveBubble2();
+    const currentOrientation: BubbleOrientation = this.bubbleSpawnManager.getActiveBubblePair().getOrientation();
+
+    const coordinatePairPostRotation: BubbleTileCoordinatePair
+      = BubbleUtils.getCoordinatePairAfterRotation( bubble1.getTileCoordinate(), bubble2.getTileCoordinate(), currentOrientation, rotationDirection, this.getBoard());
+
+    if (coordinatePairPostRotation) {
+      const newOrientation = BubbleUtils.changeOrientationByRotation(currentOrientation, rotationDirection);
+      this.bubbleSpawnManager.getActiveBubblePair().setOrientation(newOrientation);
+      
+      bubble1.setTilePosition(coordinatePairPostRotation.bubble1Coordinate);
+      bubble2.setTilePosition(coordinatePairPostRotation.bubble2Coordinate);
+    }
+  }
+
+  public moveActiveBubble(tileVector: TileVector): void {
+    const bubble1: BubbleSprite = this.bubbleSpawnManager.getActiveBubblePair().getBubble1();
+    const bubble2: BubbleSprite = this.bubbleSpawnManager.getActiveBubblePair().getBubble2();
+    
+    if (tileVector === TileVectors.DROP_VECTOR) {
+      this.startForcedSpaceBarDrop();
+      this.stopBubbles();
+      this.context.bubbleDropPopLoop();
+    } else if (this.getBoard().isTileValidAndNotOccupiedAfterTileVector(bubble1.getTileCoordinate(), tileVector)
+        && this.getBoard().isTileValidAndNotOccupiedAfterTileVector(bubble2.getTileCoordinate(), tileVector)) {
+      bubble1.moveTileByTileVector(tileVector);
+      bubble2.moveTileByTileVector(tileVector);
+    } else if (tileVector === TileVectors.DOWN_VECTOR) {
+      this.stopBubbles();
+      this.context.bubbleDropPopLoop();
+    }
+  }
+  
+  private stopBubbles() {
+    const termiantedBubblePair: BubbleSpritePair = this.bubbleSpawnManager.stopActiveBubblePair();
+    this.putBubbleSpriteByTile(termiantedBubblePair.getBubble1());
+    this.putBubbleSpriteByTile(termiantedBubblePair.getBubble2());
   }
 }

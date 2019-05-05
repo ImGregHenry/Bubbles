@@ -8,6 +8,7 @@ Features:
 
 
 Fixes:
+// Bubbles spawn off of the map -- handle array spawn location
 // Rotation should be on the individual axis
 // Rotation should be enabled when rotating into a wall
 // Added delay after each bubble drop

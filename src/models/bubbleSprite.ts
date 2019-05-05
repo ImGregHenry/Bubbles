@@ -8,7 +8,7 @@ export class BubbleSprite {
   private context: MainScene;
   private bubble: Sprite;
   private color: string;
-
+  
   constructor(context: MainScene, startCoordinate: TileCoordinate, color?: string) {
     this.context = context;
     this.color = color != null ? color : BubbleUtils.generateRandomBubbleColorImageName();
